@@ -6,6 +6,18 @@ __pycache__/
 # C extensions
 *.so
 
+#Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+media
+/CourseWork/*/migrations
+
+#storage
+/gif_app/gifs
 # Distribution / packaging
 .Python
 build/

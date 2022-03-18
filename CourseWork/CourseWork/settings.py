@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+import local_settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'gif_app'
+    'gif_app.apps.GifAppConfig'
 ]
 
 MIDDLEWARE = [
@@ -82,11 +83,7 @@ WSGI_APPLICATION = 'CourseWork.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'NAME': BASE_DIR,
-        'CLIENT': {
-                'host': 'mongodb+srv://MongoLogin:<password>@cluster0.1hhnb.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
-            } 
+        local_settings.INFO
     }
 }
 
@@ -131,3 +128,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_ROOT = './../gif_app/gifs'
