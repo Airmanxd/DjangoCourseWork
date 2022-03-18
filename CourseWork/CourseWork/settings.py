@@ -82,8 +82,11 @@ WSGI_APPLICATION = 'CourseWork.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'djongo',
+        'NAME': BASE_DIR,
+        'CLIENT': {
+                'host': 'mongodb+srv://MongoLogin:<password>@cluster0.1hhnb.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+            } 
     }
 }
 
