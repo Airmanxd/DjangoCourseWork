@@ -14,10 +14,10 @@ __pycache__/
 local_settings.py
 db.sqlite3
 media
-/CourseWork/*/migrations
+/CourseWork/gif_app/migrations
 
 #storage
-/gif_app/gifs
+CourseWork/gif_app/gifs
 # Distribution / packaging
 .Python
 build/

@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
-import local_settings
+import environ
+env = environ.Env()
+environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-tu%b3a747ke)p6pzrbn&$te3jn1t#yb)clg5658b+117xwnvup'
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -83,7 +85,11 @@ WSGI_APPLICATION = 'CourseWork.wsgi.application'
 
 DATABASES = {
     'default': {
-        local_settings.INFO
+        'ENGINE' : 'djongo',
+        'USER' : env('DATABASE_USER'),
+        'PASSWORD' : env('DATABASE_PASSWORD'),
+        'NAME' : env('DATABASE_NAME'),
+        'CLIENT' : {'host' : env('DATABASE_HOST')}
     }
 }
 
@@ -129,4 +135,10 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_ROOT = './../gif_app/gifs'
+MEDIA_ROOT = './gif_app/gifs'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ]
+}
