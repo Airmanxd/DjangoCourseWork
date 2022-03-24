@@ -41,8 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
-    'gif_app.apps.GifAppConfig'
+    'djoser',
+    'gif_app',
 ]
 
 MIDDLEWARE = [
@@ -86,10 +88,7 @@ WSGI_APPLICATION = 'CourseWork.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE' : 'djongo',
-        'USER' : env('DATABASE_USER'),
-        'PASSWORD' : env('DATABASE_PASSWORD'),
         'NAME' : env('DATABASE_NAME'),
-        'CLIENT' : {'host' : env('DATABASE_HOST')}
     }
 }
 
@@ -140,5 +139,18 @@ MEDIA_ROOT = './gif_app/gifs'
 REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSIONS_CLASSES' : [
+        'rest_framework.permissions.IsAuthenticated'
     ]
+}
+
+
+DJOSER = {
+    'USER_CREATE_PASSWORD_RETYPE' : True
 }

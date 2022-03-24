@@ -11,6 +11,7 @@ djongo = "*"
 pymongo = "==3.12.3"
 pillow = "*"
 django-environ = "*"
+djoser = "*"
 
 [dev-packages]
 

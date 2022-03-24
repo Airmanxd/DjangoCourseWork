@@ -5,7 +5,7 @@ from django.conf import settings
 # Create your models here.
 class Gif(models.Model):
     name = models.CharField(max_length=30, unique=True)
-    favourites = models.IntegerField(default=0)
+    favourites = models.IntegerField(default=0, blank=True)
     categories = models.JSONField(null=True)
-    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     file = models.ImageField()
