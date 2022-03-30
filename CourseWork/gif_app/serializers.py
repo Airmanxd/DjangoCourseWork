@@ -4,4 +4,4 @@ from .models import Gif
 class GifSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gif
-        fields=['name', 'favourites', 'categories', 'creator', 'file']
+        fields=['name', 'favourites', 'tags', 'creator', 'file']
