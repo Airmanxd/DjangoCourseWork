@@ -1,1 +1,5 @@
-Backend api for a gif sharing service
+Gif hosting service
+
+DjangoRestFramework, MongoDB - backend
+
+ReactJS, bootstrap - frontend
