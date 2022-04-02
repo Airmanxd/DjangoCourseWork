@@ -18,7 +18,6 @@ environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
@@ -138,8 +137,11 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+#Dropbox setup
+# DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+# DROPBOX_OAUTH2_TOKEN = env('DROPBOX_TOKEN')
+# DROPBOX_ROOT_PATH = '/apps/GifHosting/gifs'
 MEDIA_ROOT = './gif_app/gifs'
-
 REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
@@ -151,9 +153,9 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSIONS_CLASSES' : [
         'rest_framework.permissions.IsAuthenticated'
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
 }
-
 
 DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE' : True

@@ -12,6 +12,7 @@ pymongo = "==3.12.3"
 pillow = "*"
 django-environ = "*"
 djoser = "*"
+django-storages = {extras = ["dropbox"], version = "*"}
 
 [dev-packages]
 
