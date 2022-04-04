@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { SearchResult } from "./searchResult";
-import { Button } from 'reactstrap'
+
 export const Header = () => {
     const [input, setInput] = useState("");
     const [tags, setTags] = useState([]);
@@ -31,20 +31,17 @@ export const Header = () => {
     }
 
     return(
-        <div>
-            <div class="input-group flex-nowrap">
-                <div class="col-md-3">
-                </div>
-                <div class="col-md-6">
-                    <input class="form-control" type="text" placeholder="Filter tags"
-                    onChange={handleChange} value={input} onFocus={onFocus} onBlur={onBlur} />
-                    
-                    {focused ? <SearchResult filtered={filtered} /> : null}
-                </div>
-                <div class="col-md-3">
-                    <div class="position-absolute top-0 end-0">
-                        <Button color="secondary"> Logout</Button>
+        <div class="sticky-top mb-2" >
+            <div class="input-group ">
+                <div class="col-md-6 offset-md-3" style={{position: "relative"}}>
+                    <div class="row d-flex flex-nowrap">
+                        <input class="order-1 p-2 form-control me-2" type="text" placeholder="Filter Tags" 
+                        onChange={handleChange} value={input} onFocus={onFocus} onBlur={onBlur} />
+                        
+                            <button type="button" class="btn btn-light order-1" style={{width: "100px"}}>Logout</button>
                     </div>
+                        { focused && <SearchResult style={{position: "absolute", zIndex: 2, top: "37.6px"}} filtered={filtered} />}
+                    
                 </div>
             </div>
         </div>

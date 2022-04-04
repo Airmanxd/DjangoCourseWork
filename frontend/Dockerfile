@@ -1,0 +1,9 @@
+FROM node:14
+
+WORKDIR /usr/src/frontend
+
+COPY package.json .
+
+RUN npm install --silent
+
+COPY . .

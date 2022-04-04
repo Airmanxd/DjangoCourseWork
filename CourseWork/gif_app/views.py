@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from .models import Gif
 from rest_framework import parsers, viewsets, permissions
 from rest_framework.response import Response
