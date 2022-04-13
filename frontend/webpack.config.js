@@ -10,7 +10,7 @@ const Dotenv = require('dotenv-webpack');
 function resolvePath(dir) {
     return path.join(__dirname, dir);
 }
-
+const appUrl = process.env.APP_URL || 'http://localhost:8000';
 module.exports = {
     mode: 'development',
     entry: {
@@ -124,6 +124,12 @@ module.exports = {
     },
     plugins: [
             // Development only plugins
+            new webpack.DefinePlugin({
+                'process.env.APP_URL': JSON.stringify(appUrl),
+            }),
+            new Dotenv({
+                path: `./.env`, // Path to .env file
+            }),
             new webpack.HotModuleReplacementPlugin(),
             new webpack.NamedModulesPlugin(),
             new HtmlWebpackPlugin({

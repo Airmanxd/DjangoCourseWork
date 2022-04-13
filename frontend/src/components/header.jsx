@@ -1,17 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { SearchResult } from "./searchResult";
+import { useDispatch, useSelector } from "react-redux";
+import { deactivate } from "../slices/loginSlice";
+import { changeRefresh, changeAccess } from "../slices/tokenSlice";
+import { LoginForm } from "./login";
 
 export const Header = () => {
     const [input, setInput] = useState("");
     const [tags, setTags] = useState([]);
     const [filtered, setFiltered] = useState([]);
-    const [focused, setFocused] = React.useState(false)
+    const [focused, setFocused] = useState(false)
+    const [filters, setFilters] = useState([]);
+    const [loginForm, setLoginForm] = useState(false);
     const onFocus = () => setFocused(true)
     const onBlur = () => setFocused(false)
+    const dispatch = useDispatch();
+    const login = useSelector((state) => state.login.value);
+
     useEffect(
         () =>{
-            axios.get('http://localhost:8000/api/v1/gifs/tags/')
+            axios.get(`${process.env.APP_URL}/api/v1/gifs/tags/`)
             .then(res =>{
                 setTags(res.data);
                 console.log(res.data);
@@ -28,7 +37,19 @@ export const Header = () => {
             if(tag.toLowerCase().includes(inp.toLowerCase()))
                 return tag;
         });
-    }
+    };
+
+    const handleLogOut = useCallback(() =>{
+        dispatch(deactivate());
+        dispatch(changeAccess(""));
+        dispatch(changeRefresh(""));
+        setLoginForm(false);
+    }, [dispatch, login])
+
+    const handleClick = useCallback((e) => {
+        setFilters(...filters, ...[e.target.value]);
+        console.log("filters: ", filters);
+    }, [filters, filtered]);
 
     return(
         <div class="sticky-top mb-2" >
@@ -38,9 +59,14 @@ export const Header = () => {
                         <input class="order-1 p-2 form-control me-2" type="text" placeholder="Filter Tags" 
                         onChange={handleChange} value={input} onFocus={onFocus} onBlur={onBlur} />
                         
-                            <button type="button" class="btn btn-light order-1" style={{width: "100px"}}>Logout</button>
+                            {login ? <button type="button" class="btn btn-primary order-1"
+                                    onClick={handleLogOut} style={{width: "100px"}}>Log Out</button> :
+                                   <button type="button" class="btn btn-primary order-1"
+                                   onClick={()=>setLoginForm(true)} style={{width: "100px"}}>Login</button>}
                     </div>
-                        { focused && <SearchResult style={{position: "absolute", zIndex: 2, top: "37.6px"}} filtered={filtered} />}
+                        { focused && <SearchResult style={{position: "absolute", zIndex: 2, top: "37.6px"}}
+                         handleCLick={handleClick} filtered={filtered} />}
+                         {loginForm && !login &&<LoginForm></LoginForm>}
                     
                 </div>
             </div>

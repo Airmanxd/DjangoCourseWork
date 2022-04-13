@@ -11,18 +11,21 @@ class GifViewSet(viewsets.ModelViewSet):
     queryset = Gif.objects.all()
     serializer_class = GifSerializer
     parser_classes = [parsers.FormParser, parsers.MultiPartParser, parsers.JSONParser]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     permission_classes_by_action = {'retrieve': [permissions.AllowAny],
-                                    'list': [permissions.AllowAny]}
+                                    'list': [permissions.AllowAny],
+                                    'likes' : [permissions.IsAuthenticated],
+                                    'tags' : [permissions.AllowAny]}
+
 
     def perform_create(self, serializer):
         serializer.validated_data['tags'] = {"1" : serializer.validated_data['tags']}
         if serializer.validated_data['name'] == '':
             serializer.validated_data['name'] = serializer.validated_data['file']
-
         return super().perform_create(serializer)
         
-    @action(detail=False, url_path='tags', url_name="get_all_tags", permission_classes=[permissions.AllowAny])
+
+    @action(detail=False, url_path='tags', url_name="get_all_tags")
     def tags(self, request):
         data = Gif.objects.values_list('tags', flat=True)
         res = set()
@@ -45,9 +48,23 @@ class GifViewSet(viewsets.ModelViewSet):
         return Response({"gifs" : serializer.data,
                         "hasMore" : self.is_more_data(offset)})
 
+
+    @action(detail=False, url_path='likes', url_name="get_all_likes")
+    def likes(self, request):
+        qs = request.user.liked.all()
+        serializer = self.serializer_class(qs, many=True)
+        offset = request.query_params.get('offset')
+
+        page = self.paginate_queryset(qs)
+        serializer = self.get_serializer(page, many=True)
+        
+        return Response({"gifs" : serializer.data,
+                        "hasMore" : self.is_more_data(offset)})
+
+
     def is_more_data(self, offset):
         return self.queryset.count() > int(offset)
-        
+
 
     def get_permissions(self):
         try:

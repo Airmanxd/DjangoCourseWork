@@ -1,17 +1,23 @@
 import axios from "axios";
 import React, { useEffect, useState, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { changeAccess } from "../slices/tokenSlice";
 
 export const GifList = () => {
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
     const [gifs, setGifs] = useState([]);
     const [offset, setOffset] = useState(0);
-    const [limit, setLimit] = useState(5);
+    const [limit, setLimit] = useState(15);
+
+    const dispatch = useDispatch();
+    const access = useSelector((state)=>state.token.access);
+    const refresh = useSelector((state)=>state.token.refresh);
 
     const loadMore = useCallback(() => {
         console.log("Starting to fetch gifs...");
         setLoading(true);
-        axios.get(`http://localhost:8000/api/v1/gifs/?limit=${limit}&offset=${offset}`)
+        axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}`)
         .then( res => {
             console.log("gifs: ", res.data.gifs);
             const tempGifs = [...gifs, ...res.data.gifs];
@@ -21,9 +27,9 @@ export const GifList = () => {
             console.log("limit: ", limit);
             setOffset((prev) => prev + limit);
             setHasMore(res.data.hasMore);
-            console.log("Хазымарыч: ", res.data.hasMore)
+            console.log("hasMore: ", res.data.hasMore)
         });
-    }, [offset, limit]);
+    }, [offset, limit, dispatch]);
     useEffect(() => {
         loadMore();
     }, []);
@@ -50,6 +56,7 @@ export const GifList = () => {
                         ))
                     }
                 </div>
+                {hasMore ? null : "No more gifs to show :("}
             </div>
             
         </div>
