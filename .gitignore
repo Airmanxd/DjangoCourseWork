@@ -124,3 +124,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+#React ignores
+node_modules
+package-lock.json

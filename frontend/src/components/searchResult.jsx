@@ -1,15 +1,18 @@
-import React, { useCallback, useState } from "react";
+import React from "react";
+import { useDispatch } from "react-redux";
+import { addToActive } from "../slices/tagsSlice";
 
-export const SearchResult = ({filtered, handleClick}) => {
+
+export const SearchResult = ({filtered}) => {
+    const dispatch = useDispatch();
     return(
-        <ul class="list-group" style={{position: "absolute",
-            width: "100%",
-            zIndex: 10}}>
+        <div className="list-group" >
             {
                 filtered.slice(0, 7).map((tag) => (
-                    <a onClick={handleClick} class="list-group-item"> {tag}</a>
+                    <button key={tag} type="button" onClick={()=>{dispatch(addToActive(tag))}} 
+                        className="list-group-item list-group-item-action"> {tag}</button>
                 ))
             }
-        </ul>
+        </div>
     )
 }

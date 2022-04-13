@@ -43,14 +43,14 @@ export const GifList = () => {
     };
     return(
         <div style={{overflowY: 'auto', flex: 1}}>
-            <div class="col-md-8 offset-md-2">
-                <div class="row row-cols-5">
+            <div className="col-md-8 offset-md-2">
+                <div className="row row-cols-5">
                     {
                         gifs.map(({name, file, tags}) => (
-                            <div class="col">
-                                <div class="card">
-                                    <img class="card-img-top" src={file} ></img>
-                                    <h5 class="card-title">{name}</h5>
+                            <div className="col">
+                                <div className="card">
+                                    <img className="card-img-top" src={file} ></img>
+                                    <h5 className="card-title">{name}</h5>
                                 </div>
                             </div>
                         ))

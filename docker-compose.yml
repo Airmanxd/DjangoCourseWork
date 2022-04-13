@@ -7,6 +7,7 @@ services:
     command: npm start
     environment:
       CHOKIDAR_USEPOLLING: "true"
+      ENV: "${ENV}"
     volumes:
       - ./frontend/src:/usr/src/frontend/src
     ports:

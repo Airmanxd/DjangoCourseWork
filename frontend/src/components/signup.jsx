@@ -33,30 +33,30 @@ export const LoginForm = () => {
     };
 
     return(
-        <div class="col-md-3 offset-md-5">
+        <div className="col-md-3 offset-md-5">
             <form onSubmit={handleSubmit}>
-                <div class="form-outline mb-1">
-                    <input type="username" class="form-control" value={username}/>
-                    <label class="form-label">Username</label>
+                <div className="form-outline mb-1">
+                    <input type="username" className="form-control" value={username}/>
+                    <label className="form-label">Username</label>
                 </div>
 
-                <div class="form-outline mb-1">
-                    <input type="password" class="form-control" value={password}/>
-                    <label class="form-label">Password</label>
+                <div className="form-outline mb-1">
+                    <input type="password" className="form-control" value={password}/>
+                    <label className="form-label">Password</label>
                 </div>
                 
-                <div class="form-outline mb-1">
-                    <input type="password" class="form-control" value={passwordConf} />
-                    <label class="form-label">Confirm Your Password</label>
+                <div className="form-outline mb-1">
+                    <input type="password" className="form-control" value={passwordConf} />
+                    <label className="form-label">Confirm Your Password</label>
                 </div>
-                <div class="row mb-1">
-                    <div class="col d-flex">
-                        <button type="sumbit" class="btn btn-primary">Sign Up</button>
+                <div className="row mb-1">
+                    <div className="col d-flex">
+                        <button type="sumbit" className="btn btn-primary">Sign Up</button>
                     </div>
                 </div>
-                <div class="row mb-1">
-                    <div class="col d-flex">
-                        <button type="button" class="btn btn-secondary">Sign Up</button>
+                <div className="row mb-1">
+                    <div className="col d-flex">
+                        <button type="button" className="btn btn-secondary">Sign Up</button>
                     </div>
                 </div>
                 <p>{errorMessage}</p>

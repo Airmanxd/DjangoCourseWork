@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { changeRefresh, changeAccess } from "../slices/tokenSlice";
 import { activate } from "../slices/loginSlice";
 
@@ -11,7 +11,7 @@ export const LoginForm = () => {
     const [password, setPassword] = useState("");
     const [passwordConf, setPasswordConf] = useState("");
     const dispatch = useDispatch();
-    
+
     const handleSubmitLogin = (event) =>
     {
         console.log("username", username, "password",
@@ -24,9 +24,6 @@ export const LoginForm = () => {
                 dispatch(changeAccess(result.data.access));
                 dispatch(changeRefresh(result.data.refresh));
                 dispatch(activate());
-            })
-            .catch((errorMessage) => {
-                setErrorMessage(errorMessage);
             });
     }; 
     const handleSubmitSignUp = (event) =>
@@ -52,38 +49,38 @@ export const LoginForm = () => {
             })
     };
     return(
-        <div class="col-md-6 offset-md-3">
+        <div className="col-md-6 offset-md-3">
             <form onSubmit={signUp ? handleSubmitSignUp : handleSubmitLogin}>
-                <div class="form-outline mb-1">
-                    <input type="username" class="form-control" value={username}
+                <div className="form-outline mb-1">
+                    <input type="username" className="form-control" value={username}
                     onChange={(e)=>setUsername(e.target.value)} />
-                    <label class="form-label">Username</label>
+                    <label className="form-label">Username</label>
                 </div>
 
-                <div class="form-outline mb-1">
-                    <input type="password" class="form-control" value={password}
+                <div className="form-outline mb-1">
+                    <input type="password" className="form-control" value={password}
                     onChange={(e)=>setPassword(e.target.value)} />
-                    <label class="form-label">Password</label>
+                    <label className="form-label">Password</label>
                 </div>
 
                 {signUp &&
-                <div class="form-outline mb-1">
-                    <input type="password" class="form-control" value={passwordConf}
+                <div className="form-outline mb-1">
+                    <input type="password" className="form-control" value={passwordConf}
                     onChange={(e)=>setPasswordConf(e.target.value)} />
-                    <label class="form-label">Confirm Your Password</label>
+                    <label className="form-label">Confirm Your Password</label>
                 </div>
                 }
 
-                <div class="row mb-1">
-                    <div class="col d-flex">
-                        <button type="submit" class="btn btn-primary">{signUp ? "Sign Up" : "Login"}</button>
+                <div className="row mb-1">
+                    <div className="col d-flex">
+                        <button type="submit" className="btn btn-primary">{signUp ? "Sign Up" : "Login"}</button>
                     </div>
                 </div>
-                <div class="row mb-1">
-                    <div class="col d-flex">
+                <div className="row mb-1">
+                    <div className="col d-flex">
                         {signUp ?
-                            <button type="button" class="btn btn-secondary" onClick={()=>setSignUp(false)}>Login</button>
-                            : <button type="button" class="btn btn-secondary" onClick={()=>setSignUp(true)}>Sign Up</button>}
+                            <button type="button" className="btn btn-secondary" onClick={()=>setSignUp(false)}>Login</button>
+                            : <button type="button" className="btn btn-secondary" onClick={()=>setSignUp(true)}>Sign Up</button>}
                     </div>
                 </div>
                 <p>{errorMessage}</p>
