@@ -141,9 +141,9 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #Dropbox setup
-DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-DROPBOX_OAUTH2_TOKEN = env('DROPBOX_TOKEN')
-DROPBOX_ROOT_PATH = '/apps/GifHosting/gifs'
+# DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+# DROPBOX_OAUTH2_TOKEN = env('DROPBOX_TOKEN')
+# DROPBOX_ROOT_PATH = '/apps/GifHosting/gifs'
 MEDIA_ROOT = './gif_app/gifs'
 REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [

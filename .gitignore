@@ -128,4 +128,4 @@ dmypy.json
 
 #React ignores
 node_modules
-package-lock.json
+frontend/package-lock.json

@@ -6,7 +6,7 @@ const initialState = {
 }
 
 export const tagsSlice = createSlice({
-  name: 'activeTags',
+  name: 'tags',
   initialState,
   reducers: {
     addToActive: (state, action) => {
@@ -17,14 +17,9 @@ export const tagsSlice = createSlice({
       state.tags = action.payload;
     },
     removeFromActive: (state, action) => {
-      console.log("remove payload", action.payload);
-      console.log("state.activeTags", state.activeTags,
-                    "state.tags", state.tags);
       state.tags.push(
         state.activeTags.splice(
           state.activeTags.indexOf(action.payload), 1)[0]);
-      console.log("state.activeTags", state.activeTags,
-                    "state.tags", state.tags);
     }
   },
 })
