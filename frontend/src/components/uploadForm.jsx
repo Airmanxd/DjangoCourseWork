@@ -1,50 +1,105 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { changeRefresh, changeAccess } from "../slices/tokenSlice";
-import { FormGroup, Label, Modal, ModalHeader, ModalBody, Form, Input, ModalFooter, Button, InputGroup } from "reactstrap";
+import { FormGroup, Label, Modal, ModalHeader, ModalBody, Form, Input, Button, InputGroup } from "reactstrap";
 import { toggleUploadForm } from "../slices/formsSlice";
+import { SearchResult } from "./searchResult";
+import { ActiveTags } from "./activeTags";
 
 export const UploadForm = () => {
+    const ALLtags = useSelector((state)=>state.tags.tags);
     const [file, setFile] = useState();
     const [name, setName] = useState("");
     const [input, setInput] = useState("");
-    const [gifTags, setGifTags] = useState();
     const [focused, setFocused] = useState(false);
-    const [filtered, setFiltered] = useState([]);
-    const onFocus = () => setFocused(true)
-    const onBlur = () => setFocused(false)
+    const [suggestions, setSuggestions] = useState([]);
+    const [tags, setTags] = useState([]);
+    const [uploadTags, setUploadTags] = useState([]);
     const access = useSelector((state)=>state.token.access);
-    const tags = useSelector((state)=>state.tags.tags);
-    const login = useSelector((state)=>state.login.value);
     const uploadForm = useSelector((state)=>state.forms.uploadForm);
     const dispatch = useDispatch();
 
+    useEffect(()=>{
+        setTags(ALLtags);
+    }, [ALLtags, setTags]);
+
+    useEffect(()=>{
+        setSuggestions(filterSuggestions(input));
+    }, [tags, input]);
+
     const handleSubmit = useCallback((event)=>{
+        event.preventDefault();
         console.log("Starting to upload the gif");
-        axios.post(`${process.env.APP_URL}/api/v1/gifs/`, {headers : {"Authorization" : `Bearer ${access}`}, })
-    });
+        console.log("file", file);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('name', name);
+        const tagsString = `[\"${uploadTags.join("\", \"")}\"]`;
+        uploadTags.map((tag)=>{tagsString.concat(tag, "\", \"")});
+        formData.append('tags', tagsString);
+        console.log("uploadTags: ", formData.get('tags'));
+        axios.post(`${process.env.APP_URL}/api/v1/gifs/`, formData,
+            {headers : {"Authorization" : `JWT ${access}`,
+            "content-type" : "multipart/form-data"}, })
+            .then((response)=>{
+                console.log("upload response: ", response);
+                if (response.status===400){
+                    axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
+                    .then((result)=>{
+                        dispatch(changeAccess(result.data.access));
+                        axios.post(`${process.env.APP_URL}/api/v1/gifs/`,
+                         {'file' : file, 'name' : name, 'tags' : tags},
+                            {headers : {"Authorization" : `JWT ${access}`,
+                            "content-type" : "multipart/form-data"}, })
+            });
+                }
+            });
+    }, [file, name, uploadTags]);
+
+    const removeFromTags = useCallback((tag)=>{
+        const temp = tags.slice();
+        temp.splice(tags.indexOf(tag), 1); 
+        setTags(temp);
+    }, [tags, setTags]);
+
+    const addToTags = useCallback((tag) =>{
+        const temp = tags.slice();
+        temp.push(tag); 
+        setTags(temp);
+    },[tags, setTags]);
 
     const handleEnter = useCallback((event)=>{
         if(event.key==="Enter") {
-            setGifTags(...gifTags, event.target.value);
+            event.preventDefault();
+            if(tags.includes(event.target.value))
+                removeFromTags(event.target.value);
+            setUploadTags([...uploadTags, event.target.value]);
+            setInput("");
         }
-    });
-    
-    const addToTags = useCallback((tag)=>{
-        setGifTags(...gifTags, tag);
-    }, []);
-    
-    useEffect(()=>{
-        setFiltered(filteredTags(input));
-    }, [activeTags]);
+        if(event.key==="Tab"){
+            event.preventDefault();
+            const tagsSuggestions = filterSuggestions(input);
+            setInput(tagsSuggestions[0]);
+        }
+    }, [dispatch, input]);
 
     const handleChange = useCallback((e) => {
         setInput(e.target.value);
-        setFiltered(filteredTags(e.target.value));
-    }, [tags]);
-    
-    const filteredTags = (inp) => {
+    }, [setInput]);
+
+    const handleClickSuggestions = useCallback((tag)=>{
+        removeFromTags(tag);
+        setUploadTags([...uploadTags, tag]);
+    },[uploadTags, setUploadTags, removeFromTags]);
+
+    const handleClickTags = useCallback((tag)=>{
+        addToTags(tag);
+        const temp = uploadTags.slice();
+        temp.splice(temp.indexOf(tag), 1);
+        setUploadTags(temp);
+    },[uploadTags, setUploadTags, addToTags]);
+
+    const filterSuggestions = useCallback((inp) => {
         if(inp!==""){
             return tags.filter((tag) => {
                 if(tag.toLowerCase().includes(inp.toLowerCase()))
@@ -53,7 +108,7 @@ export const UploadForm = () => {
         }
         else
             return tags;
-    };
+    }, [tags]);
     return(
         <div>
             <Modal
@@ -68,7 +123,7 @@ export const UploadForm = () => {
                     <Form onSubmit={handleSubmit}>
                         <FormGroup>
                             <Label for="nameField">
-                                Username
+                                Name for the gif
                             </Label>
                             <Input
                              type="text"
@@ -83,24 +138,25 @@ export const UploadForm = () => {
                             </Label>
                             <Input
                              type="file"
-                             value={file}
                              onChange={(e)=>setFile(e.target.files[0])}
+                             accept="image/gif"
                              id="uploadField">
                             </Input>
                         </FormGroup>
-                        <FormGroup onMouseOver={onFocus} onMouseLeave={onBlur}>
+                        <FormGroup >
                             <Label for="gifTagsField">
                                 Tags
                             </Label>
-                            <InputGroup
-                             type="text"
-                             value={input}
-                             onChange={handleChange}
-                             onKeyDown={handleEnter}
-                             id="gifTagsField">
-                            </InputGroup>
+                            <div onMouseOver={()=> setFocused(true)} onMouseLeave={() => setFocused(false)}>
+                                <Input type="text"
+                                value={input}
+                                onChange={handleChange}
+                                onKeyDown={handleEnter}
+                                id="gifTagsField"
+                                placeholder="Choose Tags"/>
                             {focused && 
-                                <SearchResult action={addToTags} filtered={filtered} />}
+                                <SearchResult limit={3} handleClick={handleClickSuggestions} filtered={suggestions} />}
+                            </div>
                         </FormGroup>
                         <FormGroup>
                             <Button 
@@ -111,12 +167,8 @@ export const UploadForm = () => {
                             </Button>
                         </FormGroup>
                     </Form>
+                <ActiveTags limit={5} tags={uploadTags} handleClick={handleClickTags}/>
                 </ModalBody>
-                <ModalFooter>
-                    {signUp ?
-                        <Button color="secondary" onClick={()=>setSignUp(false)}>Change to Login Form</Button>
-                        : <Button color="secondary" onClick={()=>setSignUp(true)}>Change to Sign Up Form</Button>}
-                </ModalFooter>
             </Modal>
         </div>
     )

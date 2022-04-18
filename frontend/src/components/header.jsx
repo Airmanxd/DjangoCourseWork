@@ -2,13 +2,13 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { SearchResult } from "./searchResult";
 import { useDispatch, useSelector } from "react-redux";
-import { activate, deactivate } from "../slices/loginSlice";
+import { deactivate } from "../slices/loginSlice";
 import { changeRefresh, changeAccess } from "../slices/tokenSlice";
 import { LoginForm } from "./login";
 import { fillTags, addToActive } from "../slices/tagsSlice";
-import { ActiveTags } from "./activeTags";
 import { toggleLoginForm, toggleUploadForm } from "../slices/formsSlice";
-import { Collapse, Input, InputGroup, Navbar, NavItem, Button, Nav, NavLink, NavbarBrand } from "reactstrap";
+import { Collapse, Input, Navbar, NavItem, Nav, NavLink, NavbarBrand } from "reactstrap";
+import { UploadForm } from "./uploadForm";
 
 export const Header = () => {
     const [input, setInput] = useState("");
@@ -19,10 +19,9 @@ export const Header = () => {
     const dispatch = useDispatch();
     const login = useSelector((state) => state.login.value);
     const activeTags = useSelector((state) => state.tags.activeTags);
-    const tags = useSelector((state) => state.tags.tags)
+    const tags = useSelector((state) => state.tags.tempTags);
 
-    useEffect(
-        () =>{
+    useEffect(() =>{
             axios.get(`${process.env.APP_URL}/api/v1/gifs/tags/`)
             .then(res =>{
                 dispatch(fillTags(res.data));
@@ -57,6 +56,10 @@ export const Header = () => {
         
     }, [dispatch]);
 
+    const handleClick = useCallback((tag)=>{
+        dispatch(addToActive(tag));
+    },[])
+
     return(
         <div>
             <Navbar
@@ -68,17 +71,14 @@ export const Header = () => {
                     Main Page
                 </NavbarBrand>
                 <NavItem onMouseOver={onFocus} onMouseLeave={onBlur}>
-                    <InputGroup>
-                        <ActiveTags/>
-                        <Input
-                        type="text"
-                        placeholder="Choose Tags"
-                        onChange={handleChange}
-                        value={input}>
-                        </Input>
-                    </InputGroup>
+                    <Input
+                    type="text"
+                    placeholder="Choose Tags"
+                    onChange={handleChange}
+                    value={input}>
+                    </Input>
                     {focused && 
-                        <SearchResult action={addToActive} filtered={filtered} />}
+                        <SearchResult limit={7} handleClick={handleClick} filtered={filtered} />}
                 </NavItem>
                 <Collapse navbar>
                     <Nav className="mr-auto"
@@ -107,28 +107,8 @@ export const Header = () => {
                     </Nav>
                 </Collapse>
             </Navbar>
+            <UploadForm></UploadForm>
             <LoginForm></LoginForm>
-            {/* <div className="sticky-top mb-2 bg-light" >
-                <div className="col-md-6 offset-md-3" >
-                    <div className="row">
-                        <div className="col-md-10" onMouseOver={onFocus} onMouseLeave={onBlur}>
-                            <div className="input-group ">
-                                <ActiveTags></ActiveTags>
-                                <input className="form-control mr-2" type="text" placeholder="Apply Filters" 
-                                onChange={handleChange} value={input} />
-                            </div>
-                            {focused && filtered.length > 0 && <SearchResult action={addToActive} filtered={filtered} />}
-                        </div>
-                        <div className="col-md-2">
-                            {login ? <button type="button" className="btn btn-primary btn-block"
-                                        onClick={handleLogOut} >Log Out</button> 
-                                : <button type="button" className="btn btn-primary btn-block"
-                                    onClick={()=>dispatch(toggleLoginForm())}>Login</button>}
-                        </div>
-                    </div>
-                    {<LoginForm></LoginForm>}
-                </div>
-            </div> */}
         </div>
         
     )

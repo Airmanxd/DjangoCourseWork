@@ -5,6 +5,8 @@ import { changeAccess } from "../slices/tokenSlice";
 import ReactLoading from "react-loading";
 import { isLoading, isNotLoading } from "../slices/loadingSlice";
 import { Button, Card, CardImg, CardTitle, Col, Modal, Row } from "reactstrap";
+import { ActiveTags } from "./activeTags";
+import { removeFromActive } from "../slices/tagsSlice";
 
 export const GifList = () => {
     const [hasMore, setHasMore] = useState(true);
@@ -12,7 +14,9 @@ export const GifList = () => {
     const [offset, setOffset] = useState(0);
     const [limit, setLimit] = useState(20);
     const [tagsParams, setTagsParams] = useState("")
+    const [likes, setLikes] = useState([]);
     const dispatch = useDispatch();
+    const login = useSelector((state)=>state.login.value);
     const loading = useSelector((state)=>state.loading.value);
     const access = useSelector((state)=>state.token.access);
     const refresh = useSelector((state)=>state.token.refresh);
@@ -21,20 +25,15 @@ export const GifList = () => {
     const loadMore = useCallback(() => {
         console.log("Starting to fetch gifs...");
         dispatch(isLoading());
-        console.log("loading", loading);
-        axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`)
+        axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
+            access ? {headers: {"Authorization" : `JWT ${access}`}} : null)
         .then( res => {
             const tempGifs = [...gifs, ...res.data.gifs];
-            console.log("gifs", gifs);
-            console.log("res.data.gifs", res.data.gifs);
-            console.log("check", res.data.gifs.length === 0 && gifs.length === 0)
             if(res.data.gifs.length === 0 && gifs.length === 0)
                 setGifs(["none"]);
             else
                 setGifs(tempGifs);
             dispatch(isNotLoading());
-            console.log(gifs);
-            console.log(tempGifs);
             setOffset((prev) => prev + limit);
             setHasMore(res.data.hasMore);
         });
@@ -44,9 +43,24 @@ export const GifList = () => {
         loadMore();
     },[tagsParams, dispatch]);
     
+    useEffect(()=>{
+        if(login){
+            axios.get(`${process.env.APP_URL}/api/v1/gifs/likes/`, {headers: {"Authorization" : `JWT ${access}`}})
+            .then((result)=>{
+                if(result.status === 401){
+                    axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
+                    .then((result)=>{
+                            dispatch(changeAccess(result.data.access));
+                            axios.get(`${process.env.APP_URL}/api/v1/gifs/likes/`, {headers: {"Authorization" : `JWT ${access}`}})
+                            .then((result)=>setLikes(result.data));
+                    });
+                }
+                setLikes(result.data);
+            })
+        }
+    }, [login, setLikes])
 
     useEffect(() => {
-        console.log("in the active tags useeffect");
         setOffset(0);
         var tempTagsParams = ``;
         activeTags.forEach(tag => {
@@ -64,35 +78,70 @@ export const GifList = () => {
                 loadMore("");
     };
 
-    const handleLike = () =>{
-
+    const handleLike = (e) =>{
+        if (login){
+            axios.post(`${process.env.APP_URL}/api/v1/gifs/likes/`, {id: e.target.id}, {headers : {"Authorization" : `JWT ${access}`}})
+            .then((response)=>{
+                if(response.status === 401){
+                    axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
+                    .then((result)=>{
+                            dispatch(changeAccess(result.data.access));
+                            axios.post(`${process.env.APP_URL}/api/v1/gifs/likes/`,  {id: e.target.id}, {headers: {"Authorization" : `JWT ${access}`}})
+                            .then((response)=>{
+                                if(response.status!==401)
+                                    handleLikeResponse(response, e);
+                            })
+                    });
+                }
+                handleLikeResponse(response, e);
+            });
+        }
     };
 
-    const handleCopy = useCallback((e)=>{
+    const handleLikeResponse = useCallback((response, e)=>{
+        if(response.data['liked']){
+            setLikes([...likes, e.target.id]);
+            e.target.favourites += 1;
+        }
+        else{
+            const temp = likes.slice();
+            temp.splice(temp.indexOf(e.target.id, 1));
+            setLikes([...likes, temp]);
+            e.target.favourites -= 1;
+        }
+    }, [likes, setLikes])
 
-    });
-
+    const handleClickTag = useCallback((tag)=>{
+        dispatch(removeFromActive(tag));
+    }, []);
     return(
         <div>
+            
             <div style={{overflowY: 'auto', flex: 1}}>
-                
                 <Col
-                    md={{offset: 2,
-                    size: 8,}}>
+                    md={{size: 2}}
+                    className="pr-2">
+                       <ActiveTags limit={5} tags={activeTags} handleClick={handleClickTag}/>
+                </Col>
+                <Col
+                    md={{size: 8, offset: 2}}>
                     <Row
                     md="5"
                     sm="3"
                     xs="1">
                         { gifs[0]=="none" ? "Sorry, no gifs were found:(" 
-                            :   gifs.map(({name, file})=>(
-                                <Col className="my-3" onClick={()=>{navigator.clipboard.writeText(file)}}
+                            :   gifs.map(({name, filepath, id, favourites})=>(
+                                <Col key={name} className="my-3" onClick={()=>{navigator.clipboard.writeText(filepath)}}
                                 onMouseOver={()=>{}}>
                                     <Card className="px-2">
-                                        <CardImg alt="Tough luck! Couldn't get the image"
-                                        src={file}
+                                        <CardImg
+                                        className="dropbox-embed"
+                                        alt="Tough luck! Couldn't get the image"
+                                        src={filepath}
                                         top/>
-                                        <CardTitle tag="h5">{name}</CardTitle>
-                                        <Button onClick={handleLike}>Like</Button>
+                                        <CardTitle>{name}</CardTitle>
+                                            <div className="p-2">{favourites}</div>
+                                            <Button  className="p-2" favourites={favourites} id={id} onClick={handleLike}>Like</Button>
                                     </Card>
                                 </Col>
                             ))}
@@ -101,6 +150,7 @@ export const GifList = () => {
                     centered
                     size="sm"
                     style={{width: "30px", height: "30px"}}
+                    
                     backdrop={false}
                     fade={false}
                     isOpen={loading}>
@@ -108,25 +158,6 @@ export const GifList = () => {
                     </Modal>
                     {!hasMore && "No more gifs to show :("}
                 </Col>
-                {/* <div className="col-md-8 offset-md-2">
-                    {loading ? 
-                        <div className="row">
-                            <ReactLoading className="mx-auto mt-5" type="spin" color="blue" width="10%" height="10%"/> 
-                        </div>
-                        : <div className="row row-cols-5">
-                            {(gifs[0] == "none") ? <div className="col-md-6 offset-md-3">
-                                Sorry, no gifs were found :(
-                            </div>
-                                : gifs.map(({name, file}) => (
-                                    <div className="col">
-                                        <div className="card">
-                                            <img className="card-img-top" src={file} ></img>
-                                            <h5 className="card-title">{name}</h5>
-                                        </div>
-                                    </div>
-                                ))}
-                    </div>}
-                </div> */}
             </div>
         </div>
     )

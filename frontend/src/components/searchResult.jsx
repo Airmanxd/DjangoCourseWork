@@ -1,19 +1,15 @@
-import React from "react";
-import { useDispatch } from "react-redux";
+import React, { useCallback } from "react";
 import { DropdownItem, DropdownMenu, UncontrolledDropdown, Button } from "reactstrap";
-import { addToActive } from "../slices/tagsSlice";
 
 
-export const SearchResult = ({filtered, action}) => {
-    const dispatch = useDispatch();
+export const SearchResult = ({filtered, handleClick, limit}) => {
     return(
         <UncontrolledDropdown>
             <DropdownMenu className="show w-100" >
                 {
-                    filtered.slice(0, 7).map((tag) => (
-                        <DropdownItem>
-                            <Button key={tag} type="button" onClick={()=>{dispatch(action(tag))}} 
-                                className="dropdown-item"> {tag}</Button>
+                    filtered.length !== 0 && filtered.slice(0, limit).map((tag) => (
+                        <DropdownItem key={tag} type="button" onClick={()=>handleClick(tag)}>
+                            {tag}   
                         </DropdownItem>
                     ))
                 }
