@@ -7,13 +7,15 @@ import { changeRefresh, changeAccess } from "../slices/tokenSlice";
 import { LoginForm } from "./login";
 import { fillTags, addToActive } from "../slices/tagsSlice";
 import { toggleLoginForm, toggleUploadForm } from "../slices/formsSlice";
-import { Collapse, Input, Navbar, NavItem, Nav, NavLink, NavbarBrand } from "reactstrap";
+import { Collapse, Input, Navbar, NavItem, Nav, NavLink, NavbarBrand, NavbarToggler } from "reactstrap";
 import { UploadForm } from "./uploadForm";
+import { addErrorAlert } from "../slices/alertsSlice";
 
 export const Header = () => {
     const [input, setInput] = useState("");
     const [filtered, setFiltered] = useState([]);
     const [focused, setFocused] = useState(false);
+    const [open, setOpen] = useState(false);
     const onFocus = () => setFocused(true)
     const onBlur = () => setFocused(false)
     const dispatch = useDispatch();
@@ -21,12 +23,13 @@ export const Header = () => {
     const activeTags = useSelector((state) => state.tags.activeTags);
     const tags = useSelector((state) => state.tags.tempTags);
 
-    useEffect(() =>{
+    useEffect(() => {
             axios.get(`${process.env.APP_URL}/api/v1/gifs/tags/`)
             .then(res =>{
                 dispatch(fillTags(res.data));
                 setFiltered(res.data);
-            });
+            })
+            .catch( error => dispatch(addErrorAlert(error.response.data)));
     }, []);
 
     useEffect(()=>{
@@ -60,6 +63,10 @@ export const Header = () => {
         dispatch(addToActive(tag));
     },[])
 
+    const toggleCollapse = useCallback(()=>{
+        setOpen(!open);
+    }, [open, setOpen]);
+
     return(
         <div>
             <Navbar
@@ -67,9 +74,6 @@ export const Header = () => {
             color="dark"
             dark
             expand="md">
-                <NavbarBrand href="/">
-                    Main Page
-                </NavbarBrand>
                 <NavItem onMouseOver={onFocus} onMouseLeave={onBlur}>
                     <Input
                     type="text"
@@ -80,8 +84,10 @@ export const Header = () => {
                     {focused && 
                         <SearchResult limit={7} handleClick={handleClick} filtered={filtered} />}
                 </NavItem>
-                <Collapse navbar>
-                    <Nav className="mr-auto"
+                <NavbarToggler onClick={toggleCollapse}/>
+                <Collapse isOpen={open} navbar>
+                    <Nav
+                    className="justify-content-end d-flex"
                     navbar>
                         {login && <>
                             <NavItem>
@@ -94,11 +100,16 @@ export const Header = () => {
                                     Favourites
                                 </NavLink>
                             </NavItem>
+                            <NavItem>
+                                <NavLink onClick={()=>dispatch(addToActive('My gifs'))}>
+                                    My gifs
+                                </NavLink>
+                            </NavItem>
                         </>}
                         {login ? <NavItem>
-                                <NavLink type="button" color="primary"
-                                        onClick={handleLogOut} >Log Out</NavLink> 
-                                </NavItem>
+                                    <NavLink type="button" color="primary"
+                                            onClick={handleLogOut} >Log Out</NavLink> 
+                                 </NavItem>
                                 : <NavItem>
                                     <NavLink onClick={()=>dispatch(toggleLoginForm())}>
                                         Login

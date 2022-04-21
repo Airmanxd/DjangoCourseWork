@@ -4,6 +4,7 @@ import loginReducer from "./slices/loginSlice"
 import tokenReducer from "./slices/tokenSlice"
 import formsReducer from "./slices/formsSlice"
 import loadingReducer from './slices/loadingSlice'
+import alertsReducer from './slices/alertsSlice'
 export const store = configureStore({
   reducer: {
     login: loginReducer,
@@ -11,5 +12,6 @@ export const store = configureStore({
     tags: tagsReducer,
     forms: formsReducer,
     loading: loadingReducer,
+    alerts: alertsReducer,
   },
 })

@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
+from re import A
 import environ
 env = environ.Env()
 environ.Env.read_env()
@@ -140,10 +142,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#Dropbox setup
-# DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-DROPBOX_OAUTH2_TOKEN = env('DROPBOX_TOKEN')
-# DROPBOX_ROOT_PATH = '/apps/GifHosting/gifs'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
 MEDIA_ROOT = './gif_app/gifs'
 REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
@@ -161,8 +161,16 @@ REST_FRAMEWORK = {
 }
 SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
+   'ACCESS_TOKEN_LIFETIME' : timedelta(minutes=10),
 }
 
 DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE' : True
 }
+#AWS S3 (Yandex cloud) setup
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+AWS_S3_REGION_NAME = 'ru-central1'
+AWS_S3_ENDPOINT_URL = env('AWS_S3_ENDPOINT_URL')
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+AWS_DEFAULT_ACL= 'public-read'

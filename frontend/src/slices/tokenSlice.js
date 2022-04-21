@@ -9,12 +9,10 @@ export const tokenSlice = createSlice({
   reducers: {
     changeAccess: (state, action) => {
         state.access = action.payload;
-        console.log("access", action.payload);
         localStorage.setItem("accessToken", action.payload);
     },
     changeRefresh: (state, action) => {
         state.refresh = action.payload;
-        console.log("refresh", action.payload);
         localStorage.setItem("refreshToken", action.payload);
     },
   },

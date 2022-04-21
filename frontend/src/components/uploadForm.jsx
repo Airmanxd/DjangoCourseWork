@@ -5,8 +5,10 @@ import { FormGroup, Label, Modal, ModalHeader, ModalBody, Form, Input, Button, I
 import { toggleUploadForm } from "../slices/formsSlice";
 import { SearchResult } from "./searchResult";
 import { ActiveTags } from "./activeTags";
+import { isLoading, isNotLoading } from "../slices/loadingSlice";
+import { addInfoAlert } from "../slices/alertsSlice";
 
-export const UploadForm = () => {
+export const UploadForm = ({update}) => {
     const ALLtags = useSelector((state)=>state.tags.tags);
     const [file, setFile] = useState();
     const [name, setName] = useState("");
@@ -15,6 +17,9 @@ export const UploadForm = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [tags, setTags] = useState([]);
     const [uploadTags, setUploadTags] = useState([]);
+    const [nameError, setNameError] = useState("");
+    const [fileError, setFileError] = useState("");
+    const [tagsError, setTagsError] = useState("");
     const access = useSelector((state)=>state.token.access);
     const uploadForm = useSelector((state)=>state.forms.uploadForm);
     const dispatch = useDispatch();
@@ -24,37 +29,64 @@ export const UploadForm = () => {
     }, [ALLtags, setTags]);
 
     useEffect(()=>{
+        setName("");
+        setUploadTags([]);
+        setInput("");
+        setNameError("");
+        setFileError("");
+        setTagsError("");
+        setFile(null);
+    },[uploadForm]);
+
+    useEffect(()=>{
         setSuggestions(filterSuggestions(input));
     }, [tags, input]);
 
     const handleSubmit = useCallback((event)=>{
         event.preventDefault();
         console.log("Starting to upload the gif");
-        console.log("file", file);
         const formData = new FormData();
         formData.append('file', file);
         formData.append('name', name);
         const tagsString = `[\"${uploadTags.join("\", \"")}\"]`;
         uploadTags.map((tag)=>{tagsString.concat(tag, "\", \"")});
         formData.append('tags', tagsString);
-        console.log("uploadTags: ", formData.get('tags'));
+        dispatch(isLoading());
+
         axios.post(`${process.env.APP_URL}/api/v1/gifs/`, formData,
-            {headers : {"Authorization" : `JWT ${access}`,
-            "content-type" : "multipart/form-data"}, })
-            .then((response)=>{
-                console.log("upload response: ", response);
-                if (response.status===400){
+                {headers : {"Authorization" : `JWT ${access}`,"content-type" : "multipart/form-data"}})
+                .then( response => handleUploadSuccess(response))
+            .catch(error => {
+                if(error.response.status===401)
                     axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
-                    .then((result)=>{
-                        dispatch(changeAccess(result.data.access));
-                        axios.post(`${process.env.APP_URL}/api/v1/gifs/`,
-                         {'file' : file, 'name' : name, 'tags' : tags},
-                            {headers : {"Authorization" : `JWT ${access}`,
-                            "content-type" : "multipart/form-data"}, })
-            });
-                }
+                                .then( result => {
+                                    dispatch(changeAccess(result.data.access));
+                                    axios.post(`${process.env.APP_URL}/api/v1/gifs/`,
+                                        {'file' : file, 'name' : name, 'tags' : tags},
+                                        {headers : {"Authorization" : `JWT ${access}`,"content-type" : "multipart/form-data"}})
+                                        .then( response => handleUploadSuccess(response))
+                                        .catch(error => handleUploadError(error));
+                                    });
+                else
+                    handleUploadError(error);
+
             });
     }, [file, name, uploadTags]);
+
+    const handleUploadSuccess = useCallback( response => {
+        console.log("upload response: ", response);
+        dispatch(isNotLoading());
+        dispatch(toggleUploadForm());
+        dispatch(addInfoAlert("Successfully Uploaded the Gif"));
+        setTags([...tags, ...uploadTags]);
+    }, [uploadTags, tags])
+
+    const handleUploadError = useCallback( error => {
+        dispatch(isNotLoading());
+        setNameError(error.response.data.name);
+        setFileError(error.response.data.file);
+        setTagsError(error.response.data.tags);
+    },[]);
 
     const removeFromTags = useCallback((tag)=>{
         const temp = tags.slice();
@@ -68,7 +100,7 @@ export const UploadForm = () => {
         setTags(temp);
     },[tags, setTags]);
 
-    const handleEnter = useCallback((event)=>{
+    const handleSpecialKeys = useCallback((event)=>{
         if(event.key==="Enter") {
             event.preventDefault();
             if(tags.includes(event.target.value))
@@ -122,6 +154,9 @@ export const UploadForm = () => {
                 <ModalBody>
                     <Form onSubmit={handleSubmit}>
                         <FormGroup>
+                            <p className="text-danger">
+                                {nameError}
+                            </p>
                             <Label for="nameField">
                                 Name for the gif
                             </Label>
@@ -133,6 +168,9 @@ export const UploadForm = () => {
                             </Input>
                         </FormGroup>
                         <FormGroup>
+                            <p className="text-danger">
+                                {fileError}
+                            </p>
                             <Label for="uploadField">
                                 Gif
                             </Label>
@@ -144,6 +182,9 @@ export const UploadForm = () => {
                             </Input>
                         </FormGroup>
                         <FormGroup >
+                            <p className="text-danger">
+                                {tagsError}
+                            </p>
                             <Label for="gifTagsField">
                                 Tags
                             </Label>
@@ -151,7 +192,7 @@ export const UploadForm = () => {
                                 <Input type="text"
                                 value={input}
                                 onChange={handleChange}
-                                onKeyDown={handleEnter}
+                                onKeyDown={handleSpecialKeys}
                                 id="gifTagsField"
                                 placeholder="Choose Tags"/>
                             {focused && 
