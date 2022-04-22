@@ -11,16 +11,16 @@ export const ActiveTags = ({tags, handleClick, limit}) => {
             {
                 tags.slice(0,limit).map((tag)=>(
                     <Button onClick={()=>handleClick(tag)}
-                    color={(tag=="Liked" || tag=="My gifs") ? "primary" : "danger"} outline key={tag} >{tag}</Button>
+                    color={(tag=="Liked" || tag=="My gifs") ? "primary" : "danger"}  key={tag} >{tag}</Button>
                     ))
                 }
                 {full ? 
                     tags.slice(limit, tags.length).map((tag)=>(
                         <Button onClick={()=>handleClick(tag)}
-                        color={(tag=="Liked" || tag=="My gifs") ? "primary" : "danger"} outline key={tag} >{tag}</Button>
+                        color={(tag=="Liked" || tag=="My gifs") ? "primary" : "danger"}  key={tag} >{tag}</Button>
                         )) : null}
                 {limit < tags.length ? <Button onClick={()=>setFull(!full)}
-                    color="info" outline>{full ? "Hide" : "..."}</Button> : null}
+                    color="info" >{full ? "Hide" : "..."}</Button> : null}
         </div>
     )
 }

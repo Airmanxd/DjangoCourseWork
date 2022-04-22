@@ -22,8 +22,11 @@ function App() {
         }
     }
 }, [dispatch, login]);
+
+const backgroundUrl = "https://images.pexels.com/photos/2847648/pexels-photo-2847648.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=2"
+
   return (
-    <div>
+    <div style={{backgroundImage: `url(${backgroundUrl})`, minHeight: "100vh"}}>
       <Header></Header>
       <GifList></GifList>
     </div>

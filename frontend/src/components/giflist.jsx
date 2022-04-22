@@ -4,11 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { changeAccess } from "../slices/tokenSlice";
 import ReactLoading from "react-loading";
 import { isLoading, isNotLoading } from "../slices/loadingSlice";
-import { Alert, Button, Card, CardFooter, CardImg, CardTitle, Col, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
+import { Alert, Button, Card, CardColumns, CardFooter, CardImg, Col, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
 import { ActiveTags } from "./activeTags";
 import { removeFromActive } from "../slices/tagsSlice";
 import { Heart } from "./heart";
 import { addErrorAlert, addInfoAlert, removeFromAlerts } from "../slices/alertsSlice";
+import { toggleUpdateForm } from "../slices/formsSlice";
+import { UpdateForm } from "./updateForm";
 
 export const GifList = () => {
     const [hasMore, setHasMore] = useState(true);
@@ -18,6 +20,7 @@ export const GifList = () => {
     const [tagsParams, setTagsParams] = useState("")
     const [userLikes, setLikes] = useState([]);
     const [deleteConfirmation, setDeleteConfirmation] = useState(false);
+    const [updateId, setUpdateId] = useState();
     const dispatch = useDispatch();
     const login = useSelector( state => state.login.value);
     const loading = useSelector( state => state.loading.value);
@@ -66,6 +69,11 @@ export const GifList = () => {
         loadMore();
     },[tagsParams, dispatch]);
     
+    const handleUpdateButton = useCallback( id =>{
+        setUpdateId(id);
+        dispatch(toggleUpdateForm());
+    },[])
+
     useEffect(()=>{
         if(login){
             axios.get(`${process.env.APP_URL}/api/v1/gifs/likes/`, {headers: {"Authorization" : `JWT ${access}`}})
@@ -84,7 +92,9 @@ export const GifList = () => {
     }, [login, setLikes])
 
     useEffect(() => {
+        console.log("cock");
         setOffset(0);
+        setHasMore(true);
         var tempTagsParams = ``;
         activeTags.forEach(tag => {
             tempTagsParams = tempTagsParams.concat(`&tag=${tag}`)
@@ -131,7 +141,9 @@ export const GifList = () => {
                     dispatch(addErrorAlert(error.response.data))
             });
         }
-    }, [access, refresh, dispatch]);
+        else
+            dispatch(addErrorAlert("You need to be logged in to be able to like gifs!"))
+    }, [access, refresh, dispatch, login]);
 
     const handleLikeResponse = useCallback((response, id)=>{
         console.log(response.data['liked']);
@@ -183,40 +195,36 @@ export const GifList = () => {
 
     return(
         <div>
-            
-            <div style={{overflowY: 'auto', flex: 1}}>
+            <div style={{overflowY: 'hidden', overflowX: 'hidden'}}>
+                <Row className="pt-2">
                 <Col
                     md={{size: 2}}
                     className="pr-2">
                        <ActiveTags limit={5} tags={activeTags} handleClick={handleClickTag}/>
                 </Col>
                 <Col
-                    md={{size: 8, offset: 2}}>
-                    <Row
-                    md="5"
-                    sm="3"
-                    xs="1">
+                    md={{size: 8}}>
+                    <CardColumns>
                         { gifs[0]=="none" ? "Sorry, no gifs were found:(" 
                             :   gifs.map(({name, file, id})=>(
-                            <div>
-                                <Col key={name} className="my-3" onClick={()=>{navigator.clipboard.writeText(file)}}
-                                onMouseOver={()=>{}}>
-                                    <Card className="px-2">
-                                        <a name={name} onClick={()=>handleLike(id)} className="position-absolute w-25 h-25 pl-1 pt-1">
-                                            <Heart color={userLikes.includes(id) ? "red" : "white"}></Heart>
-                                        </a>
+                                    <Card key={id}>
                                         <CardImg
+                                        onClick={()=>{navigator.clipboard.writeText(file)}}
                                         alt="Tough luck! Couldn't get the image"
                                         src={file}
                                         top/>
-                                        <CardTitle>
-                                           {name}
-                                        </CardTitle>
-                                        {activeTags.includes("My gifs") && <CardFooter>
-                                            <Button color="danger" onClick={()=>setDeleteConfirmation(true)}>Delete</Button>
+                                        <div className="pl-1 container-fluid d-inline-flex justify-content-between">
+                                            <div>
+                                                {name}
+                                            </div>
+                                           <a name={name} onClick={()=>handleLike(id)} style={{maxHeight: "25px", maxWidth: "25px"}}>
+                                            <Heart color={userLikes.includes(id) ? "red" : "white"}></Heart>
+                                        </a>
+                                        </div>
+                                        {activeTags.includes("My gifs") && <CardFooter className="d-flex justify-content-between">
+                                            <Button color="danger" className="py-0" onClick={()=>setDeleteConfirmation(true)}>Delete</Button>
+                                            <Button color="info" className="py-0" onClick={()=>handleUpdateButton(id)} >Update</Button>
                                         </CardFooter>}
-                                    </Card>
-                                </Col>
                                 <Modal
                                 isOpen={deleteConfirmation}
                                 toggle={()=>setDeleteConfirmation(!deleteConfirmation)}
@@ -233,26 +241,20 @@ export const GifList = () => {
                                         </div>
                                     </ModalBody>
                                  </Modal>
-                            </div>
+                                </Card>
                             ))}
-                    </Row>
-                    <Modal
-                    centered
-                    size="sm"
-                    style={{width: "30px", height: "30px"}}
-                    
-                    backdrop={false}
-                    fade={false}
-                    isOpen={loading}>
-                        <ReactLoading type="spin" color="blue" width="30px" height="30px"/> 
-                    </Modal>
-                    {!hasMore && "No more gifs to show :("}
+                    </CardColumns>
+                    <div className="container-fluid d-flex justify-content-center">
+                            {loading && <ReactLoading type="bars" color="black" width="64px" height="64px"/> }
+                            {!hasMore && "No more gifs to show :("}
+                        </div>
                 </Col>
                 <Col
-                md={{size: 2}}>
+                md={2}>
                     {
                         alerts && alerts.map( alrt => (
                             <Alert
+                            style={{zIndex : 100}}  
                             key={alrt.id}
                             color={alrt.color}
                             toggle={()=>dispatch(removeFromAlerts(alrt.id))}>
@@ -261,7 +263,9 @@ export const GifList = () => {
                         ))
                     }
                 </Col>
+                </Row>
             </div>
+            <UpdateForm id={updateId}/>
         </div>
     )
 }

@@ -7,7 +7,7 @@ import { changeRefresh, changeAccess } from "../slices/tokenSlice";
 import { LoginForm } from "./login";
 import { fillTags, addToActive } from "../slices/tagsSlice";
 import { toggleLoginForm, toggleUploadForm } from "../slices/formsSlice";
-import { Collapse, Input, Navbar, NavItem, Nav, NavLink, NavbarBrand, NavbarToggler } from "reactstrap";
+import { Collapse, Input, Navbar, NavItem, Nav, NavLink, NavbarToggler } from "reactstrap";
 import { UploadForm } from "./uploadForm";
 import { addErrorAlert } from "../slices/alertsSlice";
 
@@ -71,23 +71,25 @@ export const Header = () => {
         <div>
             <Navbar
             className="sticky-top"
-            color="dark"
+            style={{backgroundColor: "#1d2023"}}
             dark
             expand="md">
-                <NavItem onMouseOver={onFocus} onMouseLeave={onBlur}>
-                    <Input
-                    type="text"
-                    placeholder="Choose Tags"
-                    onChange={handleChange}
-                    value={input}>
-                    </Input>
-                    {focused && 
-                        <SearchResult limit={7} handleClick={handleClick} filtered={filtered} />}
+                <NavItem  className="col-md-6 offset-md-2">
+                    <div onMouseOver={onFocus} onMouseLeave={onBlur}>
+                        <Input
+                        type="text"
+                        placeholder="Choose Tags"
+                        className="input-sm mb-0"
+                        onChange={handleChange}
+                        value={input}>
+                        </Input>
+                        {focused && 
+                            <SearchResult className="mt-0" limit={7} handleClick={handleClick} filtered={filtered} />}
+                    </div>
                 </NavItem>
                 <NavbarToggler onClick={toggleCollapse}/>
                 <Collapse isOpen={open} navbar>
                     <Nav
-                    className="justify-content-end d-flex"
                     navbar>
                         {login && <>
                             <NavItem>
@@ -97,7 +99,7 @@ export const Header = () => {
                             </NavItem>
                             <NavItem>
                                 <NavLink onClick={()=>dispatch(addToActive('Liked'))}>
-                                    Favourites
+                                    Liked
                                 </NavLink>
                             </NavItem>
                             <NavItem>
@@ -118,8 +120,8 @@ export const Header = () => {
                     </Nav>
                 </Collapse>
             </Navbar>
-            <UploadForm></UploadForm>
-            <LoginForm></LoginForm>
+            <UploadForm/>
+            <LoginForm/>
         </div>
         
     )

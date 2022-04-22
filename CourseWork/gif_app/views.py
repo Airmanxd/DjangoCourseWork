@@ -16,6 +16,9 @@ class GifViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.validated_data['uploader'] = self.request.user
+        for tag in serializer.validated_data['tags']:
+            if not tag.isalnum() and not tag == "":
+                return Response(status=400, data={'tags' : "You can only use letters and numbers in tags!"})
         return super().perform_create(serializer)
 
     def perform_destroy(self, instance):
