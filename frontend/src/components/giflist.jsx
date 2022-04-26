@@ -10,13 +10,13 @@ import { removeFromActive } from "../slices/tagsSlice";
 import { Heart } from "./heart";
 import { addErrorAlert, addInfoAlert, removeFromAlerts } from "../slices/alertsSlice";
 import { toggleUpdateForm } from "../slices/formsSlice";
-import { UpdateForm } from "./updateForm";
+import { Forms } from "./forms";
 
 export const GifList = () => {
     const [hasMore, setHasMore] = useState(true);
     const [gifs, setGifs] = useState([]);
     const [offset, setOffset] = useState(0);
-    const [limit, setLimit] = useState(20);
+    const [limit, ] = useState(20);
     const [tagsParams, setTagsParams] = useState("")
     const [userLikes, setLikes] = useState([]);
     const [deleteConfirmation, setDeleteConfirmation] = useState(false);
@@ -45,8 +45,26 @@ export const GifList = () => {
             setHasMore(res.data.hasMore);
         })
         .catch((error)=>{
-            if(error.response.status===401){
-                dispatch(changeAccess(""));
+            if(error.response.status===401 && access){
+                axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
+                    .then( result => {
+                        dispatch(changeAccess(result.data.access));
+                        axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
+                                {headers: {"Authorization" : `JWT ${access}`}})
+                            .then( res => {
+                                console.log(res.data);
+                                if(res.data.gifs.length === 0 && gifs.length === 0)
+                                    setGifs(["none"]);
+                                else
+                                    setGifs([...gifs, ...res.data.gifs]);
+                                dispatch(isNotLoading());
+                                setOffset((prev) => prev + limit);
+                                setHasMore(res.data.hasMore);
+                            })
+                            .catch( error => dispatch(addErrorAlert(error.response.data)));
+                        });
+                }
+            else
                 axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`)
                     .then( res => {
                         console.log(res.data);
@@ -55,30 +73,29 @@ export const GifList = () => {
                         else
                             setGifs([...gifs, ...res.data.gifs]);
                         dispatch(isNotLoading());
-                        setOffset((prev) => prev + limit);
+                        setOffset( prev => prev + limit);
                         setHasMore(res.data.hasMore);
                     })
                     .catch( error => dispatch(addErrorAlert(error.response.data)));
-            }
-            else
-                dispatch(addErrorAlert(error.response.data))
         });
-    }, [offset, limit, tagsParams, dispatch]);
+    }, [dispatch, limit, offset, tagsParams, access, gifs, refresh]);
 
     useEffect(()=>{
+        console.log(tagsParams);
         loadMore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[tagsParams, dispatch]);
     
     const handleUpdateButton = useCallback( id =>{
         setUpdateId(id);
         dispatch(toggleUpdateForm());
-    },[])
+    },[dispatch])
 
     useEffect(()=>{
         if(login){
             axios.get(`${process.env.APP_URL}/api/v1/gifs/likes/`, {headers: {"Authorization" : `JWT ${access}`}})
-            .then((result)=>setLikes(result.data))
-            .catch((error)=>{
+            .then( result =>setLikes(result.data))
+            .catch( error =>{
                 if(error.response.status === 401){
                     axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
                     .then((result)=>{
@@ -89,10 +106,10 @@ export const GifList = () => {
                 }
             });
         }
-    }, [login, setLikes])
+    }, [access, dispatch, login, refresh, setLikes])
 
     useEffect(() => {
-        console.log("cock");
+        console.log("active tags changed");
         setOffset(0);
         setHasMore(true);
         var tempTagsParams = ``;
@@ -100,7 +117,7 @@ export const GifList = () => {
             tempTagsParams = tempTagsParams.concat(`&tag=${tag}`)
         });
         setGifs([]);
-        setTagsParams(tempTagsParams)
+        setTagsParams(tempTagsParams);
     }, [activeTags]);
 
     window.onscroll = () => {
@@ -112,10 +129,24 @@ export const GifList = () => {
     };
 
     const removeFromGifs = useCallback((id)=>{
-        const temp = gifs.slice();
-        temp = temp.filter((gif)=>gif.id!=id);
+        let temp = gifs.slice();
+        temp = temp.filter((gif)=>gif.id!==id);
         setGifs(temp);
     }, [gifs, setGifs]);
+    
+    const handleLikeResponse = useCallback((response, id)=>{
+        console.log(response.data['liked']);
+        console.log("userLikes before", userLikes);
+        if(response.data['liked'] === true){
+            setLikes([...userLikes, id]);
+        }
+        else{
+            const temp = userLikes.slice();
+            temp.splice(temp.indexOf(id), 1);
+            setLikes(temp);
+        }
+        console.log("userLikes after", userLikes);
+    }, [userLikes, setLikes]);
 
     const handleLike = useCallback((id) =>{
         if (login){
@@ -143,32 +174,19 @@ export const GifList = () => {
         }
         else
             dispatch(addErrorAlert("You need to be logged in to be able to like gifs!"))
-    }, [access, refresh, dispatch, login]);
+    }, [access, refresh, dispatch, login, handleLikeResponse]);
 
-    const handleLikeResponse = useCallback((response, id)=>{
-        console.log(response.data['liked']);
-        console.log("userLikes before", userLikes);
-        if(response.data['liked'] === true){
-            setLikes([...userLikes, id]);
-        }
-        else{
-            const temp = userLikes.slice();
-            temp.splice(temp.indexOf(id), 1);
-            setLikes(temp);
-        }
-        console.log("userLikes after", userLikes);
-    }, [userLikes, setLikes])
 
     const handleClickTag = useCallback((tag)=>{
         dispatch(removeFromActive(tag));
-    }, []);
+    }, [dispatch]);
 
     const handleDelete = useCallback((id)=>{
         console.log(id);
         dispatch(isLoading());
         axios.delete(`${process.env.APP_URL}/api/v1/gifs/${id}/`,
                     {headers: {"Authorization" : `JWT ${access}`}})
-                    .then((response)=>{
+                    .then(()=>{
                         removeFromGifs(id);
                         dispatch(isNotLoading());
                         setDeleteConfirmation(false);
@@ -191,7 +209,19 @@ export const GifList = () => {
                         else
                             dispatch(addErrorAlert(error.response.data))
                     });
-    }, [access, refresh, dispatch]);
+    }, [dispatch, access, removeFromGifs, refresh]);
+
+    const copyLink = useCallback((file)=>()=>navigator.clipboard.writeText(file), []);
+
+    const handleLikeClick = useCallback((id)=>()=>handleLike(id),[handleLike]);
+
+    const handleAlertClick = useCallback((id)=>()=>dispatch(removeFromAlerts(id)),[dispatch]);
+
+    const handleUpdateButtonClick = useCallback((id)=>()=>handleUpdateButton(id),[handleUpdateButton]);
+
+    const handleDeleteConfirmationButtonClick = useCallback(()=>()=>setDeleteConfirmation(!deleteConfirmation), [deleteConfirmation]);
+
+    const handleDeleteButtonClick = useCallback((id)=>()=>handleDelete(id), [handleDelete]);
 
     return(
         <div>
@@ -200,34 +230,37 @@ export const GifList = () => {
                 <Col
                     md={{size: 2}}
                     className="pr-2">
-                       <ActiveTags limit={5} tags={activeTags} handleClick={handleClickTag}/>
+                       <ActiveTags outline={false} limit={5} tags={activeTags} handleClick={handleClickTag}/>
                 </Col>
                 <Col
                     md={{size: 8}}>
                     <CardColumns>
-                        { gifs[0]=="none" ? "Sorry, no gifs were found:(" 
+                        { gifs[0]==="none" ? "Sorry, no gifs were found :(" 
                             :   gifs.map(({name, file, id})=>(
                                     <Card key={id}>
-                                        <CardImg
-                                        onClick={()=>{navigator.clipboard.writeText(file)}}
-                                        alt="Tough luck! Couldn't get the image"
-                                        src={file}
-                                        top/>
+                                        <div>
+                                            <CardImg
+                                            onClick={copyLink(file)}
+                                            alt="Tough luck! Couldn't get the image"
+                                            src={file}
+                                            top/>
+
+                                        </div>
                                         <div className="pl-1 container-fluid d-inline-flex justify-content-between">
                                             <div>
                                                 {name}
                                             </div>
-                                           <a name={name} onClick={()=>handleLike(id)} style={{maxHeight: "25px", maxWidth: "25px"}}>
+                                           <a name={name} onClick={handleLikeClick} style={{maxHeight: "25px", maxWidth: "25px"}}>
                                             <Heart color={userLikes.includes(id) ? "red" : "white"}></Heart>
                                         </a>
                                         </div>
                                         {activeTags.includes("My gifs") && <CardFooter className="d-flex justify-content-between">
-                                            <Button color="danger" className="py-0" onClick={()=>setDeleteConfirmation(true)}>Delete</Button>
-                                            <Button color="info" className="py-0" onClick={()=>handleUpdateButton(id)} >Update</Button>
+                                            <Button color="danger" className="py-0" onClick={handleDeleteConfirmationButtonClick}>Delete</Button>
+                                            <Button color="info" className="py-0" onClick={handleUpdateButtonClick(id)} >Update</Button>
                                         </CardFooter>}
                                 <Modal
                                 isOpen={deleteConfirmation}
-                                toggle={()=>setDeleteConfirmation(!deleteConfirmation)}
+                                toggle={handleDeleteConfirmationButtonClick}
                                 backdrop={false}
                                 size="sm"
                                 centered>
@@ -236,8 +269,8 @@ export const GifList = () => {
                                     </ModalHeader>
                                     <ModalBody>
                                         <div className="d-flex justify-content-between">
-                                            <Button color="danger" onClick={()=>handleDelete(id)}>Delete</Button>
-                                            <Button onClick={()=>setDeleteConfirmation(false)}>Cancel</Button>
+                                            <Button color="danger" onClick={handleDeleteButtonClick(id)}>Delete</Button>
+                                            <Button onClick={handleDeleteConfirmationButtonClick}>Cancel</Button>
                                         </div>
                                     </ModalBody>
                                  </Modal>
@@ -253,11 +286,10 @@ export const GifList = () => {
                 md={2}>
                     {
                         alerts && alerts.map( alrt => (
-                            <Alert
-                            style={{zIndex : 100}}  
+                            <Alert 
                             key={alrt.id}
                             color={alrt.color}
-                            toggle={()=>dispatch(removeFromAlerts(alrt.id))}>
+                            toggle={handleAlertClick(alrt.id)}>
                                 {alrt.message}
                             </Alert>
                         ))
@@ -265,7 +297,7 @@ export const GifList = () => {
                 </Col>
                 </Row>
             </div>
-            <UpdateForm id={updateId}/>
+            <Forms id={updateId}/>
         </div>
     )
 }

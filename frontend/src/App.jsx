@@ -18,7 +18,8 @@ function App() {
             .then((result)=>{
                     dispatch(changeAccess(result.data.access));
                     dispatch(activate());
-            });
+            })
+            .catch();
         }
     }
 }, [dispatch, login]);

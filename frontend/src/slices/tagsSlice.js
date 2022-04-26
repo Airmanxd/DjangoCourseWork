@@ -23,10 +23,13 @@ export const tagsSlice = createSlice({
         state.activeTags.splice(
           state.activeTags.indexOf(action.payload), 1)[0]);
     },
+    updateTags: (state, action) => {
+      state.tags = state.tags.concat(state.tags.filter( tag => !state.tags.includes(tag)));
+    }
   }
 })
 
 // Action creators are generated for each case reducer function
-export const { addToActive, fillTags, removeFromActive } = tagsSlice.actions
+export const { addToActive, fillTags, removeFromActive, updateTags } = tagsSlice.actions
 
 export default tagsSlice.reducer

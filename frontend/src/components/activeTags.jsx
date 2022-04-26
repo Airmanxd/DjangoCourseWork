@@ -1,26 +1,29 @@
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Button } from "reactstrap";
 
-export const ActiveTags = ({tags, handleClick, limit}) => {
+export const ActiveTags = ({handleClick, limit, tags, outline=true}) => {
     const [full, setFull] = useState(false);
-    if (limit===0 || limit === undefined)
-        limit = tags.length
+    const limitLocal = useMemo(()=>limit ? limit : tags.length, [limit, tags]);  
+    const fullButton = useMemo(()=>limit < tags.length, [limit, tags]);
+    const handleClickTag = useCallback((tag)=>()=>handleClick(tag), [handleClick])
+    const handleClickFull = useCallback(()=>setFull(!full),[full]);
 
     return(
         <div>
             {
-                tags.slice(0,limit).map((tag)=>(
-                    <Button onClick={()=>handleClick(tag)}
-                    color={(tag=="Liked" || tag=="My gifs") ? "primary" : "danger"}  key={tag} >{tag}</Button>
+                tags.slice(0,limitLocal).map((tag)=>(
+                    <Button outline={outline} onClick={handleClickTag(tag)}
+                    color={(tag==="Liked" || tag==="My gifs") ? "primary" : "dark"}  key={tag} >{tag}</Button>
                     ))
                 }
-                {full ? 
-                    tags.slice(limit, tags.length).map((tag)=>(
-                        <Button onClick={()=>handleClick(tag)}
-                        color={(tag=="Liked" || tag=="My gifs") ? "primary" : "danger"}  key={tag} >{tag}</Button>
-                        )) : null}
-                {limit < tags.length ? <Button onClick={()=>setFull(!full)}
-                    color="info" >{full ? "Hide" : "..."}</Button> : null}
+                {full && 
+                    tags.slice(limitLocal, tags.length).map((tag)=>(
+                        <Button outline={outline} onClick={handleClickTag(tag)}
+                        color={(tag==="Liked" || tag==="My gifs") ? "primary" : "dark"}  key={tag} >{tag}</Button>
+                        ))}
+                {fullButton &&  <Button outline={outline} onClick={handleClickFull} color="info" >
+                                    {full ? "Hide" : "..."}
+                                </Button>}
         </div>
     )
 }

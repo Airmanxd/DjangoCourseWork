@@ -12,13 +12,17 @@ class GifViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     permission_classes_by_action = {'list' : [permissions.AllowAny],
                                     'tags' : [permissions.AllowAny]}
+    forbidden_tags = ("", "Liked", "My gifs")
     
 
     def perform_create(self, serializer):
         serializer.validated_data['uploader'] = self.request.user
         for tag in serializer.validated_data['tags']:
-            if not tag.isalnum() and not tag == "":
-                return Response(status=400, data={'tags' : "You can only use letters and numbers in tags!"})
+            if not tag.isalnum() or tag in self.forbidden_tags:
+                return Response(status=400, data={'tags' : """
+                    Please only use numbers and letters in tags
+                    and avoid 'Liked' and 'My gifs' as these are reserved
+                     """})
         return super().perform_create(serializer)
 
     def perform_destroy(self, instance):

@@ -1,71 +1,50 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { SearchResult } from "./searchResult";
 import { useDispatch, useSelector } from "react-redux";
 import { deactivate } from "../slices/loginSlice";
 import { changeRefresh, changeAccess } from "../slices/tokenSlice";
-import { LoginForm } from "./login";
 import { fillTags, addToActive } from "../slices/tagsSlice";
 import { toggleLoginForm, toggleUploadForm } from "../slices/formsSlice";
-import { Collapse, Input, Navbar, NavItem, Nav, NavLink, NavbarToggler } from "reactstrap";
-import { UploadForm } from "./uploadForm";
+import { Collapse, Navbar, NavItem, Nav, NavLink, NavbarToggler } from "reactstrap";
 import { addErrorAlert } from "../slices/alertsSlice";
+import { SearchBar } from "./searchBar";
 
 export const Header = () => {
     const [input, setInput] = useState("");
-    const [filtered, setFiltered] = useState([]);
-    const [focused, setFocused] = useState(false);
     const [open, setOpen] = useState(false);
-    const onFocus = () => setFocused(true)
-    const onBlur = () => setFocused(false)
     const dispatch = useDispatch();
     const login = useSelector((state) => state.login.value);
     const activeTags = useSelector((state) => state.tags.activeTags);
-    const tags = useSelector((state) => state.tags.tempTags);
 
     useEffect(() => {
             axios.get(`${process.env.APP_URL}/api/v1/gifs/tags/`)
             .then(res =>{
                 dispatch(fillTags(res.data));
-                setFiltered(res.data);
             })
             .catch( error => dispatch(addErrorAlert(error.response.data)));
-    }, []);
+    }, [dispatch]);
 
-    useEffect(()=>{
-        setFiltered(filteredTags(input));
-    }, [activeTags]);
-
-    const handleChange = useCallback((e) => {
-        setInput(e.target.value);
-        setFiltered(filteredTags(e.target.value));
-    }, [tags]);
-    
-    const filteredTags = (inp) => {
-        if(inp!==""){
-            return tags.filter((tag) => {
-                if(tag.toLowerCase().includes(inp.toLowerCase()))
-                    return tag;
-            });
-        }
-        else
-            return tags;
-    };
-
-    const handleLogOut = useCallback(() =>{
+    const handleLogOutClick = useCallback(() => {
         dispatch(deactivate());
         dispatch(changeAccess(""));
         dispatch(changeRefresh(""));
-        
+        window.location.reload();
     }, [dispatch]);
 
-    const handleClick = useCallback((tag)=>{
+    const handleClickSearchBar = useCallback( tag => {
+        console.log("hello");
         dispatch(addToActive(tag));
-    },[])
+    },[dispatch])
 
     const toggleCollapse = useCallback(()=>{
         setOpen(!open);
     }, [open, setOpen]);
+
+    const handleSpecialTagClick = useCallback((tag)=>()=>dispatch(addToActive(tag)), [dispatch]);
+
+    const handleLoginClick = useCallback(()=>dispatch(toggleLoginForm()), [dispatch]);
+
+    const handleUploadClick = useCallback(()=>dispatch(toggleUploadForm()), [dispatch]);
 
     return(
         <div>
@@ -75,17 +54,7 @@ export const Header = () => {
             dark
             expand="md">
                 <NavItem  className="col-md-6 offset-md-2">
-                    <div onMouseOver={onFocus} onMouseLeave={onBlur}>
-                        <Input
-                        type="text"
-                        placeholder="Choose Tags"
-                        className="input-sm mb-0"
-                        onChange={handleChange}
-                        value={input}>
-                        </Input>
-                        {focused && 
-                            <SearchResult className="mt-0" limit={7} handleClick={handleClick} filtered={filtered} />}
-                    </div>
+                    <SearchBar input={input} setInput={setInput} searchResultAction={handleClickSearchBar} usedTags={activeTags}/>
                 </NavItem>
                 <NavbarToggler onClick={toggleCollapse}/>
                 <Collapse isOpen={open} navbar>
@@ -93,35 +62,34 @@ export const Header = () => {
                     navbar>
                         {login && <>
                             <NavItem>
-                                <NavLink onClick={()=>dispatch(toggleUploadForm())}>
+                                <NavLink onClick={handleUploadClick}>
                                     Upload
                                 </NavLink>
                             </NavItem>
                             <NavItem>
-                                <NavLink onClick={()=>dispatch(addToActive('Liked'))}>
+                                <NavLink onClick={handleSpecialTagClick("Liked")}>
                                     Liked
                                 </NavLink>
                             </NavItem>
                             <NavItem>
-                                <NavLink onClick={()=>dispatch(addToActive('My gifs'))}>
+                                <NavLink onClick={handleSpecialTagClick("My gifs")}>
                                     My gifs
                                 </NavLink>
                             </NavItem>
                         </>}
                         {login ? <NavItem>
-                                    <NavLink type="button" color="primary"
-                                            onClick={handleLogOut} >Log Out</NavLink> 
+                                    <NavLink onClick={handleLogOutClick}>
+                                        Log Out
+                                    </NavLink> 
                                  </NavItem>
                                 : <NavItem>
-                                    <NavLink onClick={()=>dispatch(toggleLoginForm())}>
+                                    <NavLink onClick={handleLoginClick}>
                                         Login
                                     </NavLink>
                                 </NavItem>}
                     </Nav>
                 </Collapse>
             </Navbar>
-            <UploadForm/>
-            <LoginForm/>
         </div>
         
     )
