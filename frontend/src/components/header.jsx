@@ -8,6 +8,7 @@ import { toggleLoginForm, toggleUploadForm } from "../slices/formsSlice";
 import { Collapse, Navbar, NavItem, Nav, NavLink, NavbarToggler } from "reactstrap";
 import { addErrorAlert } from "../slices/alertsSlice";
 import { SearchBar } from "./searchBar";
+import "../styles/headerModule.css"
 
 export const Header = () => {
     const [input, setInput] = useState("");
@@ -50,7 +51,6 @@ export const Header = () => {
         <div>
             <Navbar
             className="sticky-top"
-            style={{backgroundColor: "#1d2023"}}
             dark
             expand="md">
                 <NavItem  className="col-md-6 offset-md-2">

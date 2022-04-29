@@ -4,13 +4,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { changeAccess } from "../slices/tokenSlice";
 import ReactLoading from "react-loading";
 import { isLoading, isNotLoading } from "../slices/loadingSlice";
-import { Alert, Button, Card, CardColumns, CardFooter, CardImg, Col, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
+import { Alert, Button, Card, CardBody, CardColumns, CardFooter, CardImg, Col, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
 import { ActiveTags } from "./activeTags";
 import { removeFromActive } from "../slices/tagsSlice";
 import { Heart } from "./heart";
 import { addErrorAlert, addInfoAlert, removeFromAlerts } from "../slices/alertsSlice";
 import { toggleUpdateForm } from "../slices/formsSlice";
 import { Forms } from "./forms";
+import "../styles/giflistModule.css";
 
 export const GifList = () => {
     const [hasMore, setHasMore] = useState(true);
@@ -20,7 +21,8 @@ export const GifList = () => {
     const [tagsParams, setTagsParams] = useState("")
     const [userLikes, setLikes] = useState([]);
     const [deleteConfirmation, setDeleteConfirmation] = useState(false);
-    const [updateId, setUpdateId] = useState();
+    const [updateId, setUpdateId] = useState(0);
+    const [overlayText, setOverlayText] = useState("Click to Copy the Link!");
     const dispatch = useDispatch();
     const login = useSelector( state => state.login.value);
     const loading = useSelector( state => state.loading.value);
@@ -211,7 +213,12 @@ export const GifList = () => {
                     });
     }, [dispatch, access, removeFromGifs, refresh]);
 
-    const copyLink = useCallback((file)=>()=>navigator.clipboard.writeText(file), []);
+    const copyLink = useCallback((file)=>()=>{
+        navigator.clipboard.writeText(file.split("?")[0]);
+        setOverlayText("Link Copied!");
+    }, []);
+
+    const handleOnMouseOverOverlay = useCallback(()=>setOverlayText("Click to Copy the Link!"), [])
 
     const handleLikeClick = useCallback((id)=>()=>handleLike(id),[handleLike]);
 
@@ -225,7 +232,7 @@ export const GifList = () => {
 
     return(
         <div>
-            <div style={{overflowY: 'hidden', overflowX: 'hidden'}}>
+            <div className="contentContainer">
                 <Row className="pt-2">
                 <Col
                     md={{size: 2}}
@@ -238,22 +245,34 @@ export const GifList = () => {
                         { gifs[0]==="none" ? "Sorry, no gifs were found :(" 
                             :   gifs.map(({name, file, id})=>(
                                     <Card key={id}>
-                                        <div>
-                                            <CardImg
+                                        <div 
+                                            className="imgContainer" 
                                             onClick={copyLink(file)}
-                                            alt="Tough luck! Couldn't get the image"
-                                            src={file}
-                                            top/>
-
-                                        </div>
-                                        <div className="pl-1 container-fluid d-inline-flex justify-content-between">
-                                            <div>
-                                                {name}
+                                            onMouseOver={handleOnMouseOverOverlay}
+                                        >
+                                            <CardImg
+                                                alt="Tough luck! Couldn't get the image"
+                                                src={file}
+                                                top
+                                            />
+                                            <div className="overlay">
+                                                <p>
+                                                    {overlayText}
+                                                </p>
                                             </div>
-                                           <a name={name} onClick={handleLikeClick} style={{maxHeight: "25px", maxWidth: "25px"}}>
-                                            <Heart color={userLikes.includes(id) ? "red" : "white"}></Heart>
-                                        </a>
                                         </div>
+                                        <CardBody className="p-0">
+                                            <div className="pl-1 container-fluid d-inline-flex justify-content-between">
+                                                <div>
+                                                    {name}
+                                                </div>
+                                                <div className="heartContainer">
+                                                    <a name={name} onClick={handleLikeClick}>
+                                                        <Heart color={userLikes.includes(id) ? "red" : "white"}></Heart>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </CardBody>
                                         {activeTags.includes("My gifs") && <CardFooter className="d-flex justify-content-between">
                                             <Button color="danger" className="py-0" onClick={handleDeleteConfirmationButtonClick}>Delete</Button>
                                             <Button color="info" className="py-0" onClick={handleUpdateButtonClick(id)} >Update</Button>

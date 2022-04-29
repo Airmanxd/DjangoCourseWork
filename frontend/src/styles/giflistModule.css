@@ -1,0 +1,49 @@
+.contentContainer {
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+.heartContainer {
+    max-width: 25px;
+    max-height: 25px;
+}
+
+.imgContainer {
+    height: 100%;
+    background-color: rgba(54, 51, 51, 0.7);
+}
+
+.imgContainer img {
+    background-color: white;
+    opacity: 1;
+    transition: .6s;
+}
+
+.overlay {
+    position: absolute;
+    opacity: 0;
+    transform: translate(0, -100%);
+    color: #fff;
+    width: 100%;
+    transition: .6s;
+    text-align: center;
+    display: table;
+    height: 100%;
+    vertical-align: middle;
+}
+
+
+.overlay p {    
+    text-align: center;
+    display: table-cell;
+    vertical-align: middle;
+    padding-top: 1em;
+}
+
+.imgContainer:hover img {
+    opacity: 0.3;
+}
+
+.imgContainer:hover .overlay{
+    opacity: 0.9;
+}
