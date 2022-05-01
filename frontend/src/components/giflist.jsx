@@ -37,7 +37,6 @@ export const GifList = () => {
         axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
             access ? {headers: {"Authorization" : `JWT ${access}`}} : null)
         .then( res => {
-            console.log(res.data);
             if(res.data.gifs.length === 0 && gifs.length === 0)
                 setGifs(["none"]);
             else
@@ -54,7 +53,6 @@ export const GifList = () => {
                         axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
                                 {headers: {"Authorization" : `JWT ${access}`}})
                             .then( res => {
-                                console.log(res.data);
                                 if(res.data.gifs.length === 0 && gifs.length === 0)
                                     setGifs(["none"]);
                                 else
@@ -69,7 +67,6 @@ export const GifList = () => {
             else
                 axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`)
                     .then( res => {
-                        console.log(res.data);
                         if(res.data.gifs.length === 0 && gifs.length === 0)
                             setGifs(["none"]);
                         else
@@ -83,7 +80,6 @@ export const GifList = () => {
     }, [dispatch, limit, offset, tagsParams, access, gifs, refresh]);
 
     useEffect(()=>{
-        console.log(tagsParams);
         loadMore();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[tagsParams, dispatch]);
@@ -137,8 +133,6 @@ export const GifList = () => {
     }, [gifs, setGifs]);
     
     const handleLikeResponse = useCallback((response, id)=>{
-        console.log(response.data['liked']);
-        console.log("userLikes before", userLikes);
         if(response.data['liked'] === true){
             setLikes([...userLikes, id]);
         }
@@ -147,7 +141,6 @@ export const GifList = () => {
             temp.splice(temp.indexOf(id), 1);
             setLikes(temp);
         }
-        console.log("userLikes after", userLikes);
     }, [userLikes, setLikes]);
 
     const handleLike = useCallback((id) =>{

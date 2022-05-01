@@ -80,19 +80,18 @@ export const Forms = ({id}) => {
         dispatch(toggleSignUpForm());
     }, [dispatch, toggleActiveForm]);
     
-    const handleNameChange = useCallback( (e) =>  setName(e.target.value), []);
+    const handleNameChange = useCallback( e =>  setName(e.target.value), []);
 
-    const handlePasswordChange = useCallback( (e) => setPassword(e.target.value), []);
+    const handlePasswordChange = useCallback( e => setPassword(e.target.value), []);
 
-    const handlePasswordConfChange = useCallback( (e) => setPasswordConf(e.target.value), []);
+    const handlePasswordConfChange = useCallback( e => setPasswordConf(e.target.value), []);
 
     const handleUploadSuccess = useCallback( response => {
-        console.log(`${formInfo.method} response: `, response);
         dispatch(isNotLoading());
-        formInfo.toggle();
-        dispatch(addInfoAlert(formInfo.alert));
+        toggleActiveForm();
+        dispatch(addInfoAlert("Successfully uploaded the gif!"));
         dispatch(updateTags(response.data.tags));
-    }, [dispatch, formInfo])
+    }, [dispatch, formInfo, toggleActiveForm])
 
     const handleUploadError = useCallback( error => {
         dispatch(isNotLoading());
@@ -136,7 +135,6 @@ export const Forms = ({id}) => {
 
     const handleSubmitLogin = useCallback( event =>
     {
-        console.log("username", name, "password", password);
         event.preventDefault();
         axios.post(`${process.env.APP_URL}/auth/jwt/create`, {username : name,
              password})
@@ -156,8 +154,6 @@ export const Forms = ({id}) => {
 
     const handleSubmitSignUp = useCallback( (event) =>
     {
-        console.log("username", name, "password",
-         password, "passwordconf", re_password);
         event.preventDefault();
         axios.post(`${process.env.APP_URL}/auth/users/`, {username : name,
                 password,
@@ -165,7 +161,6 @@ export const Forms = ({id}) => {
             .then(()=>{ 
                 axios.post(`${process.env.APP_URL}/auth/jwt/create/`, {name,  password})
                 .then((result) =>{
-                    console.log("access", result.data.access, "refresh", result.data.refresh, "data", result.data);
                     dispatch(changeAccess(result.data.access));
                     dispatch(changeRefresh(result.data.refresh));
                     dispatch(activate());
@@ -244,7 +239,7 @@ export const Forms = ({id}) => {
         setUploadTags(temp);
     },[uploadTags, setUploadTags]);
 
-    const handleChangeFile = useCallback((e)=>()=>setFile(e.target.files[0]), []);
+    const handleChangeFile = useCallback( e => setFile(e.target.files[0]), []);
 
     const onSubmit = useCallback((event)=>{
         switch (true) {
