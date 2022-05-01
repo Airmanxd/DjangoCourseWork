@@ -9,7 +9,7 @@ import { ActiveTags } from "./activeTags";
 import { removeFromActive } from "../slices/tagsSlice";
 import { Heart } from "./heart";
 import { addErrorAlert, addInfoAlert, removeFromAlerts } from "../slices/alertsSlice";
-import { toggleUpdateForm } from "../slices/formsSlice";
+import { toggleLoginForm, toggleUpdateForm } from "../slices/formsSlice";
 import { Forms } from "./forms";
 import "../styles/giflistModule.css";
 
@@ -175,7 +175,7 @@ export const GifList = () => {
             });
         }
         else
-            dispatch(addErrorAlert("You need to be logged in to be able to like gifs!"))
+            dispatch(toggleLoginForm());
     }, [access, refresh, dispatch, login, handleLikeResponse]);
 
 
@@ -267,7 +267,7 @@ export const GifList = () => {
                                                     {name}
                                                 </div>
                                                 <div className="heartContainer">
-                                                    <a name={name} onClick={handleLikeClick}>
+                                                    <a name={name} onClick={handleLikeClick(id)}>
                                                         <Heart color={userLikes.includes(id) ? "red" : "white"}></Heart>
                                                     </a>
                                                 </div>

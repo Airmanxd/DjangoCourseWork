@@ -16,7 +16,7 @@ export const alertsSlice = createSlice({
         state.alerts.push({id : state.alertId++, message : action.payload, color : "info"});
     },
     removeFromAlerts: (state, action) => {
-        state.alerts = state.alerts.filter( ({id}) => id!=action.payload);
+        state.alerts = state.alerts.filter( ({id}) => id!==action.payload);
     }
   },
 })
