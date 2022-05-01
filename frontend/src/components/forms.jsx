@@ -110,7 +110,7 @@ export const Forms = ({id}) => {
         var tagsString = "[]";
         if(uploadTags.length===0){
             tagsString = `["${uploadTags.join('", "')}"]`;
-            uploadTags.map((tag)=>{tagsString.concat(tag, "\", \"")});
+            uploadTags.map( tag => tagsString.concat(tag, '", "'));
         }
         formData.append('tags', tagsString);
         dispatch(isLoading());
@@ -187,7 +187,7 @@ export const Forms = ({id}) => {
         var tagsString = "[]";
         if(uploadTags.length!==0){
             tagsString = `["${uploadTags.join("\", \"")}"]`;
-            uploadTags.map((tag)=>{tagsString.concat(tag, "\", \"")});
+            uploadTags.map( tag => tagsString.concat(tag, '", "'));
         }
         formData.append('tags', tagsString);
 
