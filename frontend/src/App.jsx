@@ -14,7 +14,7 @@ function App() {
     if(!login){
         const refresh = localStorage.getItem("refreshToken");
         if(refresh){
-            axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
+            axios.post(`/backend/auth/jwt/refresh/`, {refresh : refresh})
             .then((result)=>{
                     dispatch(changeAccess(result.data.access));
                     dispatch(activate());
@@ -24,10 +24,8 @@ function App() {
     }
 }, [dispatch, login]);
 
-const backgroundUrl = "https://images.pexels.com/photos/2847648/pexels-photo-2847648.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=2"
-
   return (
-    <div style={{backgroundImage: `url(${backgroundUrl})`, minHeight: "100vh"}}>
+    <div className="backgroundImage">
       <Header></Header>
       <GifList></GifList>
     </div>

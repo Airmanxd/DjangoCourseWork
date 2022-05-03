@@ -114,15 +114,15 @@ export const Forms = ({id}) => {
         formData.append('tags', tagsString);
         dispatch(isLoading());
 
-        axios.post(`${process.env.APP_URL}/api/v1/gifs/`, formData,
+        axios.post(`/backend/api/v1/gifs/`, formData,
                 {headers : {"Authorization" : `JWT ${access}`,"content-type" : "multipart/form-data"}})
                 .then( response => handleUploadSuccess(response))
                 .catch(error => {
                     if(error.response.status===401)
-                        axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
+                        axios.post(`/backend/auth/jwt/refresh/`, {refresh : refresh})
                             .then( result => {
                                 dispatch(changeAccess(result.data.access));
-                                axios.post(`${process.env.APP_URL}/api/v1/gifs/`,formData,
+                                axios.post(`/backend/api/v1/gifs/`,formData,
                                     {headers : {"Authorization" : `JWT ${access}`,"content-type" : "multipart/form-data"}})
                                     .then( response => handleUploadSuccess(response))
                                     .catch(error => handleUploadError(error));
@@ -136,7 +136,7 @@ export const Forms = ({id}) => {
     const handleSubmitLogin = useCallback( event =>
     {
         event.preventDefault();
-        axios.post(`${process.env.APP_URL}/auth/jwt/create`, {username : name,
+        axios.post(`/backend/auth/jwt/create`, {username : name,
              password})
             .then((response)=>{
                 toggleActiveForm();
@@ -155,11 +155,11 @@ export const Forms = ({id}) => {
     const handleSubmitSignUp = useCallback( (event) =>
     {
         event.preventDefault();
-        axios.post(`${process.env.APP_URL}/auth/users/`, {username : name,
+        axios.post(`/backend/auth/users/`, {username : name,
                 password,
                 re_password :  re_password})
             .then(()=>{ 
-                axios.post(`${process.env.APP_URL}/auth/jwt/create/`, {name,  password})
+                axios.post(`/backend/auth/jwt/create/`, {name,  password})
                 .then((result) =>{
                     dispatch(changeAccess(result.data.access));
                     dispatch(changeRefresh(result.data.refresh));
@@ -186,15 +186,15 @@ export const Forms = ({id}) => {
         }
         formData.append('tags', tagsString);
 
-        axios.patch(`${process.env.APP_URL}/api/v1/gifs/${id}/`, formData,
+        axios.patch(`/backend/api/v1/gifs/${id}/`, formData,
                 {headers : {"Authorization" : `JWT ${access}`,"content-type" : "multipart/form-data"}})
                 .then( response => handleUploadSuccess(response))
                 .catch(error => {
                     if(error.response.status===401)
-                        axios.patch(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
+                        axios.patch(`/backend/auth/jwt/refresh/`, {refresh : refresh})
                                 .then( result => {
                                     dispatch(changeAccess(result.data.access));
-                                    axios.post(`${process.env.APP_URL}/api/v1/gifs/${id}/`,
+                                    axios.post(`/backend/api/v1/gifs/${id}/`,
                                         formData,
                                         {headers : {"Authorization" : `JWT ${access}`,"content-type" : "multipart/form-data"}})
                                         .then( response => handleUploadSuccess(response))

@@ -14,6 +14,8 @@ django-environ = "*"
 djoser = "*"
 django-storages = {extras = ["dropbox"], version = "*"}
 boto3 = "*"
+gunicorn = "*"
+dnspython = "*"
 
 [dev-packages]
 

@@ -34,7 +34,7 @@ export const GifList = () => {
     const loadMore = useCallback(() => {
         console.log("Starting to fetch gifs...");
         dispatch(isLoading());
-        axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
+        axios.get(`/backend/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
             access ? {headers: {"Authorization" : `JWT ${access}`}} : null)
         .then( res => {
             if(res.data.gifs.length === 0 && gifs.length === 0)
@@ -47,10 +47,10 @@ export const GifList = () => {
         })
         .catch((error)=>{
             if(error.response.status===401 && access){
-                axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
+                axios.post(`/backend/auth/jwt/refresh/`, {refresh : refresh})
                     .then( result => {
                         dispatch(changeAccess(result.data.access));
-                        axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
+                        axios.get(`/backend/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
                                 {headers: {"Authorization" : `JWT ${access}`}})
                             .then( res => {
                                 if(res.data.gifs.length === 0 && gifs.length === 0)
@@ -65,7 +65,7 @@ export const GifList = () => {
                         });
                 }
             else
-                axios.get(`${process.env.APP_URL}/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`)
+                axios.get(`/backend/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`)
                     .then( res => {
                         if(res.data.gifs.length === 0 && gifs.length === 0)
                             setGifs(["none"]);
@@ -91,14 +91,14 @@ export const GifList = () => {
 
     useEffect(()=>{
         if(login){
-            axios.get(`${process.env.APP_URL}/api/v1/gifs/likes/`, {headers: {"Authorization" : `JWT ${access}`}})
+            axios.get(`/backend/api/v1/gifs/likes/`, {headers: {"Authorization" : `JWT ${access}`}})
             .then( result =>setLikes(result.data))
             .catch( error =>{
                 if(error.response.status === 401){
-                    axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {refresh : refresh})
+                    axios.post(`/backend/auth/jwt/refresh/`, {refresh : refresh})
                     .then((result)=>{
                             dispatch(changeAccess(result.data.access));
-                            axios.get(`${process.env.APP_URL}/api/v1/gifs/likes/`, {headers: {"Authorization" : `JWT ${access}`}})
+                            axios.get(`/backend/api/v1/gifs/likes/`, {headers: {"Authorization" : `JWT ${access}`}})
                             .then((result)=>setLikes(result.data));
                     });
                 }
@@ -146,17 +146,17 @@ export const GifList = () => {
     const handleLike = useCallback((id) =>{
         if (login){
             console.log(id);
-            axios.post(`${process.env.APP_URL}/api/v1/gifs/likes/`,
+            axios.post(`/backend/api/v1/gifs/likes/`,
              {"id": id},
              {headers : {"Authorization" : `JWT ${access}`}})
             .then( response => handleLikeResponse(response, id))
             .catch( error =>{
                 if(error.response.status === 401){
-                    axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`,
+                    axios.post(`/backend/auth/jwt/refresh/`,
                      {refresh : refresh})
                     .then( result => {
                             dispatch(changeAccess(result.data.access));
-                            axios.post(`${process.env.APP_URL}/api/v1/gifs/likes/`,
+                            axios.post(`/backend/api/v1/gifs/likes/`,
                              {"id": id},
                              {headers: {"Authorization" : `JWT ${access}`}})
                             .then( response => handleLikeResponse(response, id))
@@ -179,7 +179,7 @@ export const GifList = () => {
     const handleDelete = useCallback((id)=>{
         console.log(id);
         dispatch(isLoading());
-        axios.delete(`${process.env.APP_URL}/api/v1/gifs/${id}/`,
+        axios.delete(`/backend/api/v1/gifs/${id}/`,
                     {headers: {"Authorization" : `JWT ${access}`}})
                     .then(()=>{
                         removeFromGifs(id);
@@ -189,10 +189,10 @@ export const GifList = () => {
                     })
                     .catch( error => {
                         if (error.response.status === 401)
-                            axios.post(`${process.env.APP_URL}/auth/jwt/refresh/`, {"refresh" : refresh})
+                            axios.post(`/backend/auth/jwt/refresh/`, {"refresh" : refresh})
                                     .then( response => {
                                         dispatch(changeAccess(response.data.access));
-                                        axios.delete(`${process.env.APP_URL}/api/v1/gifs/${id}/`, {'id' : id},
+                                        axios.delete(`/backend/api/v1/gifs/${id}/`, {'id' : id},
                                                     {headers: {"Authorization" : `JWT ${access}`}})
                                                     .then( () => {
                                                         removeFromGifs(id);
@@ -207,7 +207,7 @@ export const GifList = () => {
     }, [dispatch, access, removeFromGifs, refresh]);
 
     const copyLink = useCallback((file)=>()=>{
-        navigator.clipboard.writeText(file.split("?")[0]);
+        navigator.clipboard.writeText(file);
         setOverlayText("Link Copied!");
     }, []);
 

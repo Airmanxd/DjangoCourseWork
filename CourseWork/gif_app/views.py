@@ -23,6 +23,7 @@ class GifViewSet(viewsets.ModelViewSet):
                     Please only use numbers and letters in tags
                     and avoid 'Liked' and 'My gifs' as these are reserved
                      """})
+        serializer.validated.data['file'] = serializer.validated_data['file'].split('?')[0]
         return super().perform_create(serializer)
 
     def perform_destroy(self, instance):

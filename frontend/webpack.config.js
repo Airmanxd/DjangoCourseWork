@@ -42,7 +42,15 @@ module.exports = {
             poll: 1000,
         },
         host: '0.0.0.0',
-        port: 3000
+        port: 3000,
+        proxy: {
+            '/backend' : {
+                target : 'localhost:3000',
+                router: () => 'http://localhost:8000',
+                pathRewrite: {'^/backend' : ''},
+                logLevel: 'debug',
+            },
+        }
     },
     optimization: {
         minimizer: [new TerserPlugin({

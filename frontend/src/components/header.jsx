@@ -18,7 +18,7 @@ export const Header = () => {
     const activeTags = useSelector((state) => state.tags.activeTags);
 
     useEffect(() => {
-            axios.get(`${process.env.APP_URL}/api/v1/gifs/tags/`)
+            axios.get(`/backend/api/v1/gifs/tags/`)
             .then(res =>{
                 dispatch(fillTags(res.data));
             })
