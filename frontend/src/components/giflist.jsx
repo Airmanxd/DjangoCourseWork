@@ -39,8 +39,12 @@ export const GifList = () => {
         .then( res => {
             if(res.data.gifs.length === 0 && gifs.length === 0)
                 setGifs(["none"]);
-            else
+            else{
+                res.data.gifs.forEach(gif => {
+                    gif.file = gif.file.split("?")[0];
+                });
                 setGifs([...gifs, ...res.data.gifs]);
+            }
             dispatch(isNotLoading());
             setOffset((prev) => prev + limit);
             setHasMore(res.data.hasMore);
@@ -55,8 +59,12 @@ export const GifList = () => {
                             .then( res => {
                                 if(res.data.gifs.length === 0 && gifs.length === 0)
                                     setGifs(["none"]);
-                                else
+                                else{
+                                    res.data.forEach(gif => {
+                                        gif.file = gif.file.split("?")[0];
+                                    });
                                     setGifs([...gifs, ...res.data.gifs]);
+                                }
                                 dispatch(isNotLoading());
                                 setOffset((prev) => prev + limit);
                                 setHasMore(res.data.hasMore);
@@ -69,8 +77,12 @@ export const GifList = () => {
                     .then( res => {
                         if(res.data.gifs.length === 0 && gifs.length === 0)
                             setGifs(["none"]);
-                        else
+                        else{
+                            res.data.forEach(gif => {
+                                gif.file = gif.file.split("?")[0];
+                            });
                             setGifs([...gifs, ...res.data.gifs]);
+                        }
                         dispatch(isNotLoading());
                         setOffset( prev => prev + limit);
                         setHasMore(res.data.hasMore);

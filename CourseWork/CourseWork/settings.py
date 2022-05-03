@@ -29,8 +29,10 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(env("DEBUG"))
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', env("API_URL")]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', env("API_URL"), '.herokuapp.com']
 
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 30000000
 
 # Application definition
 
