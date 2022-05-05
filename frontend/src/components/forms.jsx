@@ -107,7 +107,7 @@ export const Forms = ({id}) => {
         formData.append('file', file);
         formData.append('name', name);
         var tagsString = "[]";
-        if(uploadTags.length===0){
+        if(uploadTags.length!==0){
             tagsString = `["${uploadTags.join('", "')}"]`;
             uploadTags.map( tag => tagsString.concat(tag, '", "'));
         }
@@ -159,7 +159,7 @@ export const Forms = ({id}) => {
                 password,
                 re_password :  re_password})
             .then(()=>{ 
-                axios.post(`/backend/auth/jwt/create/`, {name,  password})
+                axios.post(`/backend/auth/jwt/create/`, {username: name,  password})
                 .then((result) =>{
                     dispatch(changeAccess(result.data.access));
                     dispatch(changeRefresh(result.data.refresh));
