@@ -1,6 +1,5 @@
 import axios from "axios";
 import React, { useEffect, useState, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { changeAccess } from "../slices/tokenSlice";
 import ReactLoading from "react-loading";
 import { isLoading, isNotLoading } from "../slices/loadingSlice";
@@ -8,84 +7,105 @@ import { Alert, Button, Card, CardBody, CardColumns, CardFooter, CardImg, Col, M
 import { ActiveTags } from "./activeTags";
 import { removeFromActive } from "../slices/tagsSlice";
 import { Heart } from "./heart";
-import { addErrorAlert, addInfoAlert, removeFromAlerts } from "../slices/alertsSlice";
+import { addErrorAlert, addInfoAlert, removeFromAlerts, AlertType } from "../slices/alertsSlice";
 import { toggleLoginForm, toggleUpdateForm } from "../slices/formsSlice";
 import { Forms } from "./forms";
 import "../styles/giflistModule.css";
+import { useAppDispatch, useAppSelector } from "../hooks";
+
+interface Gif{
+    tags: string[];
+    name: string;
+    id: number;
+    file: string;
+}
+
+interface LikeResponse{
+    data: {
+        [dataItem: string]: boolean;
+    }
+}
+
+interface GifsResponse{
+    data: {
+        gifs: Gif[];
+        hasMore: boolean;
+    }
+}
 
 export const GifList = () => {
     const [hasMore, setHasMore] = useState(true);
-    const [gifs, setGifs] = useState([]);
+    const [gifs, setGifs] = useState<Gif[]>([] as Gif[]);
     const [offset, setOffset] = useState(0);
     const [limit, ] = useState(20);
     const [tagsParams, setTagsParams] = useState("")
-    const [userLikes, setLikes] = useState([]);
+    const [userLikes, setLikes] = useState<number[]>([]);
     const [deleteConfirmation, setDeleteConfirmation] = useState(false);
     const [updateId, setUpdateId] = useState(0);
     const [overlayText, setOverlayText] = useState("Click to Copy the Link!");
-    const dispatch = useDispatch();
-    const login = useSelector( state => state.login.value);
-    const loading = useSelector( state => state.loading.value);
-    const access = useSelector( state => state.token.access);
-    const refresh = useSelector( state => state.token.refresh);
-    const activeTags = useSelector( state => state.tags.activeTags);
-    const alerts = useSelector( state => state.alerts.alerts)
+    const dispatch = useAppDispatch();
+    const login = useAppSelector( state => state.login.value);
+    const loading = useAppSelector( state => state.loading.value);
+    const access = useAppSelector( state => state.token.access);
+    const refresh = useAppSelector( state => state.token.refresh);
+    const activeTags = useAppSelector( state => state.tags.activeTags);
+    const alerts = useAppSelector( state => state.alerts.alerts)
 
     const loadMore = useCallback(() => {
         console.log("Starting to fetch gifs...");
         dispatch(isLoading());
         axios.get(`/backend/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
-            access ? {headers: {"Authorization" : `JWT ${access}`}} : null)
-        .then( res => {
-            if(res.data.gifs.length === 0 && gifs.length === 0)
-                setGifs(["none"]);
+            access ? {headers: {"Authorization" : `JWT ${access}`}} : undefined)
+        .then( (response: GifsResponse) => {
+            if(response.data.gifs.length === 0 && gifs.length === 0)
+                setGifs([]);
             else{
-                res.data.gifs.forEach(gif => {
+                response.data.gifs.forEach(gif => {
                     gif.file = gif.file.split("?")[0];
                 });
-                setGifs([...gifs, ...res.data.gifs]);
+                setGifs([...gifs, ...response.data.gifs]);
             }
             dispatch(isNotLoading());
             setOffset((prev) => prev + limit);
-            setHasMore(res.data.hasMore);
+            setHasMore(response.data.hasMore);
         })
         .catch((error)=>{
             if(error.response.status===401 && access){
                 axios.post(`/backend/auth/jwt/refresh/`, {refresh : refresh})
-                    .then( result => {
-                        dispatch(changeAccess(result.data.access));
+                    .then( response => {
+                        dispatch(changeAccess(response.data.access));
                         axios.get(`/backend/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`, 
                                 {headers: {"Authorization" : `JWT ${access}`}})
-                            .then( res => {
-                                if(res.data.gifs.length === 0 && gifs.length === 0)
-                                    setGifs(["none"]);
+                            .then( (response: GifsResponse) => {
+                                if(response.data.gifs.length === 0 && gifs.length === 0)
+                                    setGifs([]);
                                 else{
-                                    res.data.forEach(gif => {
+                                    response.data.gifs.forEach(gif => {
                                         gif.file = gif.file.split("?")[0];
                                     });
-                                    setGifs([...gifs, ...res.data.gifs]);
+                                    setGifs([...gifs, ...response.data.gifs]);
                                 }
                                 dispatch(isNotLoading());
                                 setOffset((prev) => prev + limit);
-                                setHasMore(res.data.hasMore);
+                                setHasMore(response.data.hasMore);
                             })
                             .catch( error => dispatch(addErrorAlert(error.response.data)));
                         });
                 }
             else
                 axios.get(`/backend/api/v1/gifs/?limit=${limit}&offset=${offset}${tagsParams}`)
-                    .then( res => {
-                        if(res.data.gifs.length === 0 && gifs.length === 0)
-                            setGifs(["none"]);
+                    .then( (response: GifsResponse) => {
+                        if(response.data.gifs.length === 0 && gifs.length === 0)
+                            setGifs([]);
                         else{
-                            res.data.forEach(gif => {
+                            response.data.gifs.forEach(gif => {
                                 gif.file = gif.file.split("?")[0];
                             });
-                            setGifs([...gifs, ...res.data.gifs]);
+                            setGifs([...gifs, ...response.data.gifs]);
                         }
                         dispatch(isNotLoading());
                         setOffset( prev => prev + limit);
-                        setHasMore(res.data.hasMore);
+                        setHasMore(response.data.hasMore);
                     })
                     .catch( error => dispatch(addErrorAlert(error.response.data)));
         });
@@ -96,7 +116,7 @@ export const GifList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[tagsParams, dispatch]);
     
-    const handleUpdateButton = useCallback( id =>{
+    const handleUpdateButton = useCallback( (id: number) =>{
         setUpdateId(id);
         dispatch(toggleUpdateForm());
     },[dispatch])
@@ -123,7 +143,7 @@ export const GifList = () => {
         setOffset(0);
         setHasMore(true);
         var tempTagsParams = ``;
-        activeTags.forEach(tag => {
+        activeTags.forEach((tag: string) => {
             tempTagsParams = tempTagsParams.concat(`&tag=${tag}`)
         });
         setGifs([]);
@@ -135,17 +155,17 @@ export const GifList = () => {
         if(document.documentElement.scrollHeight - 
             document.documentElement.scrollTop ===
                 document.documentElement.clientHeight)
-                loadMore("");
+                loadMore();
     };
 
-    const removeFromGifs = useCallback((id)=>{
+    const removeFromGifs = useCallback((id: number)=>{
         let temp = gifs.slice();
         temp = temp.filter((gif)=>gif.id!==id);
         setGifs(temp);
     }, [gifs, setGifs]);
     
-    const handleLikeResponse = useCallback((response, id)=>{
-        if(response.data['liked'] === true){
+    const handleLikeResponse = useCallback((response: LikeResponse, id: number)=>{
+        if(response.data['liked']) {
             setLikes([...userLikes, id]);
         }
         else{
@@ -155,7 +175,47 @@ export const GifList = () => {
         }
     }, [userLikes, setLikes]);
 
-    const handleLike = useCallback((id) =>{
+    const handleClickTag = useCallback((tag: string)=>{
+        dispatch(removeFromActive(tag));
+    }, [dispatch]);
+
+    const handleDelete = useCallback((id: number)=>{
+        console.log(id);
+        dispatch(isLoading());
+        axios.delete(`/backend/api/v1/gifs/${id}/`,
+                    {headers: {"Authorization" : `JWT ${access}`}})
+                    .then(()=>{
+                        removeFromGifs(id);
+                        dispatch(isNotLoading());
+                        setDeleteConfirmation(false);
+                        dispatch(addInfoAlert("Deleted the Gif Successfully"));
+                    })
+                    .catch( error => {
+                        if (error.response.status === 401)
+                            axios.post(`/backend/auth/jwt/refresh/`, {"refresh" : refresh})
+                                    .then( response => {
+                                        dispatch(changeAccess(response.data.access));
+                                        axios.delete(`/backend/api/v1/gifs/${id}/`, {headers: {"Authorization" : `JWT ${access}`}})
+                                                    .then( () => {
+                                                        removeFromGifs(id);
+                                                        dispatch(isNotLoading());
+                                                        setDeleteConfirmation(false);
+                                                        dispatch(addInfoAlert("Deleted the Gif Successfully"));
+                                                    });
+                                    });
+                        else
+                            dispatch(addErrorAlert(error.response.data))
+                    });
+    }, [dispatch, access, removeFromGifs, refresh]);
+
+    const copyLink = useCallback((file: string)=>()=>{
+        navigator.clipboard.writeText(file);
+        setOverlayText("Link Copied!");
+    }, []);
+
+    const handleOnMouseOverOverlay = useCallback(()=>setOverlayText("Click to Copy the Link!"), [])
+
+    const handleLikeClick = useCallback((id: number)=>()=>{
         if (login){
             console.log(id);
             axios.post(`/backend/api/v1/gifs/likes/`,
@@ -183,57 +243,13 @@ export const GifList = () => {
             dispatch(toggleLoginForm());
     }, [access, refresh, dispatch, login, handleLikeResponse]);
 
+    const handleAlertClick = useCallback((id: number)=>()=>dispatch(removeFromAlerts(id)),[dispatch]);
 
-    const handleClickTag = useCallback((tag)=>{
-        dispatch(removeFromActive(tag));
-    }, [dispatch]);
-
-    const handleDelete = useCallback((id)=>{
-        console.log(id);
-        dispatch(isLoading());
-        axios.delete(`/backend/api/v1/gifs/${id}/`,
-                    {headers: {"Authorization" : `JWT ${access}`}})
-                    .then(()=>{
-                        removeFromGifs(id);
-                        dispatch(isNotLoading());
-                        setDeleteConfirmation(false);
-                        dispatch(addInfoAlert("Deleted the Gif Successfully"));
-                    })
-                    .catch( error => {
-                        if (error.response.status === 401)
-                            axios.post(`/backend/auth/jwt/refresh/`, {"refresh" : refresh})
-                                    .then( response => {
-                                        dispatch(changeAccess(response.data.access));
-                                        axios.delete(`/backend/api/v1/gifs/${id}/`, {'id' : id},
-                                                    {headers: {"Authorization" : `JWT ${access}`}})
-                                                    .then( () => {
-                                                        removeFromGifs(id);
-                                                        dispatch(isNotLoading());
-                                                        setDeleteConfirmation(false);
-                                                        dispatch(addInfoAlert("Deleted the Gif Successfully"));
-                                                    });
-                                    });
-                        else
-                            dispatch(addErrorAlert(error.response.data))
-                    });
-    }, [dispatch, access, removeFromGifs, refresh]);
-
-    const copyLink = useCallback((file)=>()=>{
-        navigator.clipboard.writeText(file);
-        setOverlayText("Link Copied!");
-    }, []);
-
-    const handleOnMouseOverOverlay = useCallback(()=>setOverlayText("Click to Copy the Link!"), [])
-
-    const handleLikeClick = useCallback((id)=>()=>handleLike(id),[handleLike]);
-
-    const handleAlertClick = useCallback((id)=>()=>dispatch(removeFromAlerts(id)),[dispatch]);
-
-    const handleUpdateButtonClick = useCallback((id)=>()=>handleUpdateButton(id),[handleUpdateButton]);
+    const handleUpdateButtonClick = useCallback((id: number)=>()=>handleUpdateButton(id),[handleUpdateButton]);
 
     const handleDeleteConfirmationButtonClick = useCallback(()=>()=>setDeleteConfirmation(!deleteConfirmation), [deleteConfirmation]);
 
-    const handleDeleteButtonClick = useCallback((id)=>()=>handleDelete(id), [handleDelete]);
+    const handleDeleteButtonClick = useCallback((id: number)=>()=>handleDelete(id), [handleDelete]);
 
     return(
         <div>
@@ -247,7 +263,7 @@ export const GifList = () => {
                 <Col
                     md={{size: 8}}>
                     <CardColumns>
-                        { gifs[0]==="none" ? "Sorry, no gifs were found :(" 
+                        { gifs.length ? "Sorry, no gifs were found :(" 
                             :   gifs.map(({name, file, id})=>(
                                     <Card key={id}>
                                         <div 
@@ -272,7 +288,7 @@ export const GifList = () => {
                                                     {name}
                                                 </div>
                                                 <div className="heartContainer">
-                                                    <a name={name} onClick={handleLikeClick(id)}>
+                                                    <a onClick={handleLikeClick(id)}>
                                                         <Heart color={userLikes.includes(id) ? "red" : "white"}></Heart>
                                                     </a>
                                                 </div>
@@ -309,12 +325,12 @@ export const GifList = () => {
                 <Col
                 md={2}>
                     {
-                        alerts && alerts.map( alrt => (
+                        alerts && alerts.map( (alert: AlertType) => (
                             <Alert 
-                            key={alrt.id}
-                            color={alrt.color}
-                            toggle={handleAlertClick(alrt.id)}>
-                                {alrt.message}
+                            key={alert.id}
+                            color={alert.color}
+                            toggle={handleAlertClick(alert.id)}>
+                                {alert.message}
                             </Alert>
                         ))
                     }

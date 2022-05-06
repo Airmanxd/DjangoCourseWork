@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
 import { FormGroup, Label, Modal, ModalHeader, ModalBody, Form, Input, Button, ModalFooter } from "reactstrap";
 import ReactLoading from "react-loading";
 import { toggleLoginForm, toggleUpdateForm, toggleUploadForm, toggleSignUpForm } from "../slices/formsSlice";
@@ -11,28 +10,50 @@ import { activate } from "../slices/loginSlice";
 import { addInfoAlert, addErrorAlert } from "../slices/alertsSlice";
 import { SearchBar } from "./searchBar";
 import { updateTags } from "../slices/tagsSlice";
+import { useAppDispatch, useAppSelector } from "../hooks";
 
-export const Forms = ({id}) => {
-    const [file, setFile] = useState();
+interface Props {
+    id: number;
+};
+
+interface Error { 
+    response: { 
+        data: { 
+            name: string; 
+            file: string; 
+            tags: string; 
+        }; 
+    }; 
+};
+
+interface FormInfo {
+    formHeader: string;
+    nameField: string;
+}
+
+type ChangeEvent = React.ChangeEventHandler<HTMLInputElement>;
+
+export const Forms = ({id}: Props) => {
+    const [file, setFile] = useState<File>();
     const [name, setName] = useState("");
     const [password, setPassword] = useState("");
     const [re_password, setPasswordConf] = useState("");
     const [input, setInput] = useState("");
-    const [uploadTags, setUploadTags] = useState([]);
+    const [uploadTags, setUploadTags] = useState<string[]>([]);
     const [nameError, setNameError] = useState("");
     const [fileError, setFileError] = useState("");
     const [tagsError, setTagsError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [passwordConfError, setPasswordConfError] = useState("");
-    const [formInfo, setFormInfo] = useState({});
-    const access = useSelector( state => state.token.access);
-    const uploadForm = useSelector( state => state.forms.uploadForm);
-    const loginForm = useSelector( state => state.forms.loginForm);
-    const updateForm = useSelector( state => state.forms.updateForm);
-    const signUpForm = useSelector( state => state.forms.signUpForm);
-    const refresh = useSelector( state => state.token.refresh);
-    const loading = useSelector( state => state.loading.value);
-    const dispatch = useDispatch();
+    const [formInfo, setFormInfo] = useState<FormInfo>({formHeader: "", nameField: ""});
+    const access = useAppSelector( state => state.token.access);
+    const uploadForm = useAppSelector( state => state.forms.uploadForm);
+    const loginForm = useAppSelector( state => state.forms.loginForm);
+    const updateForm = useAppSelector( state => state.forms.updateForm);
+    const signUpForm = useAppSelector( state => state.forms.signUpForm);
+    const refresh = useAppSelector( state => state.token.refresh);
+    const loading = useAppSelector( state => state.loading.value);
+    const dispatch = useAppDispatch();
 
     const form = useMemo(()=>uploadForm || loginForm || updateForm || signUpForm, 
     [loginForm, updateForm, uploadForm, signUpForm]);
@@ -65,7 +86,7 @@ export const Forms = ({id}) => {
         setNameError("");
         setFileError("");
         setTagsError("");
-        setFile(null);
+        setFile(undefined);
     },[uploadForm]);
 
     const handleLoginToggle = useCallback(()=>()=>{
@@ -80,31 +101,32 @@ export const Forms = ({id}) => {
         dispatch(toggleSignUpForm());
     }, [dispatch, toggleActiveForm]);
     
-    const handleNameChange = useCallback( e =>  setName(e.target.value), []);
+    const handleNameChange: ChangeEvent = useCallback( e =>  setName(e.target.value), []);
 
-    const handlePasswordChange = useCallback( e => setPassword(e.target.value), []);
+    const handlePasswordChange: ChangeEvent = useCallback( e => setPassword(e.target.value), []);
 
-    const handlePasswordConfChange = useCallback( e => setPasswordConf(e.target.value), []);
+    const handlePasswordConfChange: ChangeEvent = useCallback( e => setPasswordConf(e.target.value), []);
 
-    const handleUploadSuccess = useCallback( response => {
+    const handleUploadSuccess = useCallback( (response: { data: { tags: string[]; }; }) => {
         dispatch(isNotLoading());
         toggleActiveForm();
         dispatch(addInfoAlert("Successfully uploaded the gif!"));
         dispatch(updateTags(response.data.tags));
-    }, [dispatch, formInfo, toggleActiveForm])
+    }, [dispatch, toggleActiveForm])
 
-    const handleUploadError = useCallback( error => {
+    const handleUploadError = useCallback( (error: Error) => {
         dispatch(isNotLoading());
         setNameError(error.response.data.name);
         setFileError(error.response.data.file);
         setTagsError(error.response.data.tags);
     },[dispatch]);
 
-    const handleSubmitUpload = useCallback( event => {
-        event.preventDefault();
+    const handleSubmitUpload = useCallback( (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         console.log("Starting to upload the gif");
         const formData = new FormData();
-        formData.append('file', file);
+        if (file)
+            formData.append('file', file);
         formData.append('name', name);
         var tagsString = "[]";
         if(uploadTags.length!==0){
@@ -133,9 +155,9 @@ export const Forms = ({id}) => {
             });
     }, [access, dispatch, file, handleUploadError, handleUploadSuccess, name, refresh, uploadTags]);
 
-    const handleSubmitLogin = useCallback( event =>
+    const handleSubmitLogin = useCallback( (e: React.FormEvent<HTMLFormElement>) =>
     {
-        event.preventDefault();
+        e.preventDefault();
         axios.post(`/backend/auth/jwt/create`, {username : name,
              password})
             .then((response)=>{
@@ -152,9 +174,9 @@ export const Forms = ({id}) => {
                 
     }, [name, password, dispatch, toggleActiveForm]); 
 
-    const handleSubmitSignUp = useCallback( (event) =>
+    const handleSubmitSignUp = useCallback( (e: React.FormEvent<HTMLFormElement>) =>
     {
-        event.preventDefault();
+        e.preventDefault();
         axios.post(`/backend/auth/users/`, {username : name,
                 password,
                 re_password :  re_password})
@@ -174,8 +196,8 @@ export const Forms = ({id}) => {
             })
     }, [dispatch, password, re_password, name]);
 
-    const handleSubmitUpdate = useCallback( event =>{
-        event.preventDefault();
+    const handleSubmitUpdate = useCallback( (e: React.FormEvent<HTMLFormElement>) =>{
+        e.preventDefault();
         console.log(`Starting to update the gif ${id}`);
         const formData = new FormData();
         formData.append('name', name);
@@ -209,19 +231,19 @@ export const Forms = ({id}) => {
     useEffect(()=>{
         switch (true) {
             case uploadForm:
-                setFormInfo({method : "Upload",
+                setFormInfo({formHeader : "Upload Form",
                     nameField : "Name"});
                     break;
             case updateForm:
-                setFormInfo({method : "Update",
+                setFormInfo({formHeader : "Update Form",
                     nameField : "Name"});
                     break;
             case signUpForm:
-                setFormInfo({method : "Sign Up",
+                setFormInfo({formHeader : "Sign Up Form",
                     nameField : "Username"});
                     break;
             case loginForm:
-                setFormInfo({method : "Login",
+                setFormInfo({formHeader : "Login Form",
                     nameField : "Username"});
                     break;
             default:
@@ -229,19 +251,23 @@ export const Forms = ({id}) => {
         }
     }, [uploadForm, loginForm, signUpForm, updateForm])
 
-    const handleClickSuggestions = useCallback((tag)=>{
+    const handleClickSuggestions = useCallback((tag: string)=>{
         setUploadTags([...uploadTags, tag]);
     },[uploadTags, setUploadTags]);
 
-    const handleClickTags = useCallback((tag)=>{
-        const temp = uploadTags.slice();
+    const handleClickTags = useCallback((tag: string)=>{
+        const temp: string[] = uploadTags.slice();
         temp.splice(temp.indexOf(tag), 1);
         setUploadTags(temp);
     },[uploadTags, setUploadTags]);
 
-    const handleChangeFile = useCallback( e => setFile(e.target.files[0]), []);
+    const handleChangeFile: ChangeEvent = useCallback( e => {
+        const fileList = e.target.files;
+        if(fileList)
+            setFile(fileList[0])
+    }, []);
 
-    const onSubmit = useCallback((event)=>{
+    const onSubmit = useCallback((event: React.FormEvent<HTMLFormElement>)=>{
         switch (true) {
             case uploadForm:
                 handleSubmitUpload(event);
@@ -268,7 +294,7 @@ export const Forms = ({id}) => {
                 toggle={toggleActiveForm}
             >
                 <ModalHeader>
-                    {`${formInfo.method} Form`}
+                    {formInfo.formHeader}
                 </ModalHeader>
                 <ModalBody>
                     <Form onSubmit={onSubmit}>
@@ -349,7 +375,7 @@ export const Forms = ({id}) => {
                             type="submit"
                             color="primary"
                             >
-                                {formInfo.method}
+                                {formInfo.formHeader.split(" ")[0]}
                             </Button>
                         </FormGroup>
                         <div className="container-fluid d-flex justify-content-center">

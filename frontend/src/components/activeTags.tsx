@@ -1,12 +1,21 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Button } from "reactstrap";
 
-export const ActiveTags = ({handleClick, limit, tags, outline=true}) => {
+interface Props {
+    handleClick: (tag: string)=>void;
+    limit: number;
+    tags: string[];
+    outline?: boolean;
+}
+
+export const ActiveTags = ({handleClick, limit, tags, outline=true}: Props) => {
     const [full, setFull] = useState(false);
-    const limitLocal = useMemo(()=>limit ? limit : tags.length, [limit, tags]);  
-    const fullButton = useMemo(()=>limit < tags.length, [limit, tags]);
-    const handleClickTag = useCallback((tag)=>()=>handleClick(tag), [handleClick])
-    const handleClickFull = useCallback(()=>setFull(!full),[full]);
+    const limitLocal = useMemo( () => limit ? limit : tags.length, [limit, tags]);  
+    const fullButton = useMemo( () => limit < tags.length, [limit, tags]);
+ 
+    const handleClickTag = useCallback( (tag: string) => () => handleClick(tag), [handleClick])
+
+    const handleClickFull = useCallback( () => setFull(!full), [full]);
 
     return(
         <div>

@@ -1,9 +1,14 @@
 import React, { useCallback } from "react";
 import { DropdownItem, DropdownMenu, UncontrolledDropdown } from "reactstrap";
 
+interface Props{
+    filtered: string[];
+    handleClick: (tag: string)=>void;
+    limit: number;
+}
 
-export const SearchResult = ({filtered, handleClick, limit}) => {
-    const handleClickItem = useCallback((tag)=>()=>handleClick(tag), [handleClick]);
+export const SearchResult = ({filtered, handleClick, limit}: Props) => {
+    const handleClickItem = useCallback((tag: string)=>()=>handleClick(tag), [handleClick]);
     return(
         <UncontrolledDropdown>
             <DropdownMenu className="show w-100" >

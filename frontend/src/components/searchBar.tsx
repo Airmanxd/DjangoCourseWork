@@ -1,15 +1,24 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { Input } from "reactstrap";
+import { useAppSelector } from "../hooks";
 import { SearchResult } from "./searchResult";
 
-export const SearchBar = ({ input, setInput, searchResultAction, usedTags}) =>{
-    const ALLtags = useSelector( state => state.tags.tags);
+interface Props {
+    input: string;
+    setInput: React.Dispatch<React.SetStateAction<string>>;
+    searchResultAction: (e: string) => void;
+    usedTags: string[];
+}
+
+type ChangeEvent = React.ChangeEventHandler<HTMLInputElement>;
+
+export const SearchBar = ({ input, setInput, searchResultAction, usedTags}: Props) =>{
+    const ALLtags = useAppSelector( state => state.tags.tags);
     const [tags, setTags] = useState(ALLtags);
-    const [filtered, setFiltered] = useState([]);
+    const [filtered, setFiltered] = useState<string[]>([]);
     const [focused, setFocused] = useState(false);
 
-    const getFilteredTags = useCallback((inp) => {
+    const getFilteredTags = useCallback((inp: string) => {
         if(inp!==""){
             return tags.filter((tag) => tag.toLowerCase().includes(inp.toLowerCase()));
         }
@@ -22,20 +31,16 @@ export const SearchBar = ({ input, setInput, searchResultAction, usedTags}) =>{
         setTags(ALLtags.filter((tag)=>!usedTags.includes(tag)));
     }, [ALLtags, usedTags])
 
-    const handleSpecialKeys = useCallback((event)=>{
+    const handleSpecialKeys = useCallback((event: React.KeyboardEvent<HTMLInputElement>)=>{
         if(event.key==="Enter") {
             event.preventDefault();
-            searchResultAction(event.target.value);
+            searchResultAction(event.currentTarget.value);
             setInput("");
-        }
-        if(event.key==="Tab"){
-            event.preventDefault();
-            setInput(getFilteredTags(input)[0]);
         }
     }, [getFilteredTags, input, searchResultAction, setInput]);
 
 
-    const handleChange = useCallback((e) => {
+    const handleChange: ChangeEvent = useCallback((e) => {
         setInput(e.target.value);
         setFiltered(getFilteredTags(e.target.value));
     }, [getFilteredTags, setInput]);

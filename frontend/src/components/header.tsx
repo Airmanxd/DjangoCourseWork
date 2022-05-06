@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
 import { deactivate } from "../slices/loginSlice";
 import { changeRefresh, changeAccess } from "../slices/tokenSlice";
 import { fillTags, addToActive } from "../slices/tagsSlice";
@@ -9,13 +8,14 @@ import { Collapse, Navbar, NavItem, Nav, NavLink, NavbarToggler } from "reactstr
 import { addErrorAlert } from "../slices/alertsSlice";
 import { SearchBar } from "./searchBar";
 import "../styles/headerModule.css"
+import { useAppDispatch, useAppSelector } from "../hooks";
 
 export const Header = () => {
     const [input, setInput] = useState("");
     const [open, setOpen] = useState(false);
-    const dispatch = useDispatch();
-    const login = useSelector((state) => state.login.value);
-    const activeTags = useSelector((state) => state.tags.activeTags);
+    const dispatch = useAppDispatch();
+    const login = useAppSelector((state) => state.login.value);
+    const activeTags = useAppSelector((state) => state.tags.activeTags);
 
     useEffect(() => {
             axios.get(`/backend/api/v1/gifs/tags/`)
@@ -32,7 +32,7 @@ export const Header = () => {
         window.location.reload();
     }, [dispatch]);
 
-    const handleClickSearchBar = useCallback( tag => {
+    const handleClickSearchBar = useCallback( (tag: string) => {
         console.log("hello");
         dispatch(addToActive(tag));
     },[dispatch])
@@ -41,7 +41,7 @@ export const Header = () => {
         setOpen(!open);
     }, [open, setOpen]);
 
-    const handleSpecialTagClick = useCallback((tag)=>()=>dispatch(addToActive(tag)), [dispatch]);
+    const handleSpecialTagClick = useCallback((tag: string)=>()=>dispatch(addToActive(tag)), [dispatch]);
 
     const handleLoginClick = useCallback(()=>dispatch(toggleLoginForm()), [dispatch]);
 

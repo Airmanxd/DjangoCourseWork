@@ -14,7 +14,7 @@ const appUrl = process.env.APP_URL || 'http://localhost:8000';
 module.exports = {
     mode: 'development',
     entry: {
-        app: './src/index.jsx',
+        app: './src/index.tsx',
     },
     output: {
         path: resolvePath('www'),
@@ -69,6 +69,7 @@ module.exports = {
                 include: [
                     resolvePath('src'),
                 ],
+                exclude: /\.stories\.(tsx|ts|jsx|js)/
             },
             {
                 test: /\.css$/,
