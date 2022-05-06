@@ -263,7 +263,7 @@ export const GifList = () => {
                 <Col
                     md={{size: 8}}>
                     <CardColumns>
-                        { gifs.length ? "Sorry, no gifs were found :(" 
+                        { gifs.length===0 ? "Sorry, no gifs were found :(" 
                             :   gifs.map(({name, file, id})=>(
                                     <Card key={id}>
                                         <div 
